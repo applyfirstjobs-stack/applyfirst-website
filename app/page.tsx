@@ -593,12 +593,12 @@ export default function ApplyFirst() {
               </div>
             </div>
             <h1 className="text-6xl md:text-8xl lg:text-[100px] font-black text-white leading-none tracking-tighter mb-6 uppercase">
-              Fresh Remote<br />
-              <span className="text-[#d4af37]">Jobs Direct</span><br />
-              From Companies
+              Fresh Jobs<br />
+              <span className="text-[#d4af37]">Direct From</span><br />
+              Companies
             </h1>
             <p className="text-white/40 text-lg md:text-xl max-w-2xl leading-relaxed mb-10">
-              Jobs pulled directly from Stripe, OpenAI, Netflix, Notion and 100+ company career pages.
+              Jobs pulled directly from Stripe, OpenAI, Netflix, Notion and 400,000+ company career pages.
               <span className="text-white/60 font-bold"> Fresh listings updated automatically every 6 hours.</span>
             </p>
             <div className="flex flex-wrap gap-4">
@@ -854,6 +854,12 @@ export default function ApplyFirst() {
             <span>Jobs from public career pages</span>
             <span>·</span>
             <span>Updated every 6 hours</span>
+            <span>·</span>
+            <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>
+            <span>·</span>
+            <a href="/terms" className="hover:text-white transition-colors">Terms</a>
+            <span>·</span>
+            <a href="/contact" className="hover:text-white transition-colors">Contact</a>
             <span>·</span>
             <span>© 2026 ApplyFirst</span>
           </div>
