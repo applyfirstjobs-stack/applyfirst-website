@@ -70,7 +70,7 @@ export default function TermsOfService() {
 
           <section>
             <h2 className="text-lg font-black text-white uppercase tracking-tight mb-3">8. Email Alerts</h2>
-            <p>If you subscribe to job alerts, you consent to receiving periodic emails from us. You can unsubscribe at any time by contacting us at <span className="text-[#d4af37]">hello@applyfirstjobs.com</span>. We will never sell your email address.</p>
+            <p>If you subscribe to job alerts, you consent to receiving periodic emails from us. You can unsubscribe at any time by contacting us at <span className="text-[#d4af37]">applyfirstjobs@gmail.com</span>. We will never sell your email address.</p>
           </section>
 
           <section>
@@ -85,7 +85,7 @@ export default function TermsOfService() {
 
           <section>
             <h2 className="text-lg font-black text-white uppercase tracking-tight mb-3">11. Contact</h2>
-            <p>For any questions about these Terms: <span className="text-[#d4af37]">hello@applyfirstjobs.com</span></p>
+            <p>For any questions about these Terms: <span className="text-[#d4af37]">applyfirstjobs@gmail.com</span></p>
           </section>
 
         </div>
