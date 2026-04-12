@@ -58,7 +58,7 @@ export default function PrivacyPolicy() {
 
           <section>
             <h2 className="text-lg font-black text-white uppercase tracking-tight mb-3">5. Data Storage</h2>
-            <p>Your email address is stored securely in our database provided by Supabase, hosted on AWS infrastructure. We retain email addresses until you request deletion. To delete your data, email us at <span className="text-[#d4af37]">privacy@applyfirstjobs.com</span>.</p>
+            <p>Your email address is stored securely in our database provided by Supabase, hosted on AWS infrastructure. We retain email addresses until you request deletion. To delete your data, email us at <span className="text-[#d4af37]">applyfirstjobs@gmail.com</span>.</p>
           </section>
 
           <section>
@@ -74,7 +74,7 @@ export default function PrivacyPolicy() {
               <li>Request deletion of your personal data</li>
               <li>Unsubscribe from job alert emails at any time</li>
             </ul>
-            <p className="mt-3">To exercise any of these rights, contact us at <span className="text-[#d4af37]">privacy@applyfirstjobs.com</span>.</p>
+            <p className="mt-3">To exercise any of these rights, contact us at <span className="text-[#d4af37]">applyfirstjobs@gmail.com</span>.</p>
           </section>
 
           <section>
@@ -84,7 +84,7 @@ export default function PrivacyPolicy() {
 
           <section>
             <h2 className="text-lg font-black text-white uppercase tracking-tight mb-3">9. Contact</h2>
-            <p>For any privacy-related questions: <span className="text-[#d4af37]">privacy@applyfirstjobs.com</span></p>
+            <p>For any privacy-related questions: <span className="text-[#d4af37]">applyfirstjobs@gmail.com</span></p>
           </section>
         </div>
       </div>
