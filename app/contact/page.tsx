@@ -33,25 +33,25 @@ export default function Contact() {
                 icon: '📬',
                 title: 'General Enquiries',
                 desc: 'Questions about ApplyFirst, feedback, or suggestions.',
-                email: 'hello@applyfirstjobs.com',
+                email: 'applyfirstjobs@gmail.com',
               },
               {
                 icon: '🔒',
                 title: 'Privacy & Data',
                 desc: 'Data deletion requests, privacy concerns, GDPR.',
-                email: 'privacy@applyfirstjobs.com',
+                email: 'applyfirstjobs@gmail.com',
               },
               {
                 icon: '⚖️',
                 title: 'Legal',
                 desc: 'Legal notices, takedown requests, copyright issues.',
-                email: 'legal@applyfirstjobs.com',
+                email: 'applyfirstjobs@gmail.com',
               },
               {
                 icon: '🏢',
                 title: 'Employers & Partnerships',
                 desc: 'Featured listings, partnerships, API access.',
-                email: 'partners@applyfirstjobs.com',
+                email: 'applyfirstjobs@gmail.com',
               },
             ].map((item) => (
               <div key={item.title} className="bg-[#0c0c0c] border border-white/5 rounded-2xl p-6">
@@ -97,7 +97,7 @@ export default function Contact() {
                 Found a broken job link? Inaccurate listing? Let us know and we'll fix it.
               </p>
               <a
-                href="mailto:hello@applyfirstjobs.com?subject=Report a Problem"
+                href="mailto:applyfirstjobs@gmail.com?subject=Report a Problem"
                 className="text-[#d4af37] text-xs font-black uppercase tracking-widest hover:text-white transition-colors"
               >
                 Report Issue →
@@ -119,4 +119,3 @@ export default function Contact() {
     </div>
   );
 }
-
