@@ -19,7 +19,20 @@ const cleanText = (text: any) => {
 
 const getTimeAgo = (dateString: any) => {
   if (!dateString) return 'Recently';
-  const diff = new Date().getTime() - new Date(dateString).getTime();
+
+  // Handle Workday's text format e.g. "Posted 2 Days Ago"
+  const str = String(dateString);
+  const postedMatch = str.match(/Posted\s+(\d+)\s+Day/i);
+  if (postedMatch) return `${postedMatch[1]}d ago`;
+  if (str.toLowerCase().includes('today')) return 'Today';
+  if (str.toLowerCase().includes('yesterday')) return 'Yesterday';
+  const hourMatch = str.match(/(\d+)\s+hour/i);
+  if (hourMatch) return `${hourMatch[1]}h ago`;
+
+  // Handle real date strings
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return 'Recently';
+  const diff = new Date().getTime() - date.getTime();
   const hours = Math.floor(diff / (1000 * 60 * 60));
   const days = Math.floor(diff / (1000 * 60 * 60 * 24));
   if (hours < 1) return 'Just Posted';
@@ -96,6 +109,13 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     document.title = `${job.job_title} at ${job.company_name} — ApplyFirst`;
     window.history.pushState({}, '', `/jobs/${job.id}`);
+
+    // Handle browser back button
+    const handlePopState = () => {
+      onBack();
+    };
+    window.addEventListener('popstate', handlePopState);
+
     async function loadRelated() {
       const { data } = await supabase
         .from('jobs')
@@ -107,8 +127,10 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
       setRelatedJobs(data || []);
     }
     if (job.industry) loadRelated();
+
     return () => {
       document.title = 'ApplyFirst — Fresh Remote Jobs Updated Every 6 Hours';
+      window.removeEventListener('popstate', handlePopState);
       window.history.pushState({}, '', '/');
     };
   }, [job.id]);
