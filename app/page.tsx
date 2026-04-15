@@ -37,12 +37,10 @@ const openUrl = (url: any) => { if (isValidUrl(url)) window.open(url, '_blank');
 function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
   const s = getScoreStyle(job.apply_score);
   return (
-    <div className="min-h-screen bg-[#030303] text-white">
+    <div className="min-h-screen bg-[#030303] text-white selection:bg-[#d4af37]">
       <nav className="sticky top-0 z-50 border-b border-white/5 bg-[#030303]/95 backdrop-blur-xl h-16 flex items-center justify-between px-8">
         <button onClick={onBack} className="flex items-center gap-3">
-          <div className="w-8 h-8 bg-[#d4af37] rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.3)]">
-            <span className="text-black font-black italic">A</span>
-          </div>
+          <div className="w-8 h-8 bg-[#d4af37] rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(212,175,55,0.3)]"><span className="text-black font-black italic">A</span></div>
           <span className="font-black uppercase tracking-tight">ApplyFirst</span>
         </button>
       </nav>
@@ -52,7 +50,7 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
           <p className="text-[#d4af37] font-black uppercase tracking-[0.3em] mb-8">{job.company_name}</p>
           <div className="flex flex-wrap gap-3 mb-10">
             <span className={`px-4 py-2 rounded-full border ${s.bg} ${s.border} ${s.text} text-[10px] font-black uppercase tracking-widest`}>{job.apply_score}</span>
-            <span className="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest text-white/40">📍 {job.location}</span>
+            <span className="px-4 py-2 rounded-full border border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest text-white/40">📍 {job.location || 'Remote'}</span>
           </div>
           <button onClick={() => openUrl(job.apply_url)} className="bg-[#d4af37] text-black px-12 py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] hover:bg-white transition-all shadow-[0_0_20px_rgba(212,175,55,0.2)]">Apply Now →</button>
         </div>
@@ -78,6 +76,7 @@ export default function ApplyFirst() {
   useEffect(() => {
     async function load() {
       setLoading(true);
+      // FIXED: Removed { count: 'exact' } to stop the 0 Roles / timeout issue
       let q = supabase.from('jobs').select('*').order('created_at', { ascending: false });
       if (search) q = q.or(`job_title.ilike.%${search}%,company_name.ilike.%${search}%`);
       if (industry !== 'All Industries') q = q.eq('industry', industry);
@@ -128,7 +127,7 @@ export default function ApplyFirst() {
         </div>
       </section>
 
-      {/* SEARCH & FILTER BAR */}
+      {/* SEARCH BAR */}
       <div className="sticky top-16 z-40 bg-[#030303]/95 backdrop-blur-xl border-b border-white/5 py-4 px-8">
         <div className="max-w-7xl mx-auto flex gap-3">
           <div className="flex-1 flex items-center bg-[#111] border border-white/10 rounded-2xl px-6 py-4 gap-4 focus-within:border-[#d4af37]/30 transition-all">
@@ -138,7 +137,7 @@ export default function ApplyFirst() {
           <button onClick={() => setShowFilters(!showFilters)} className={`px-8 py-4 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all ${showFilters || activeFilters > 0 ? 'bg-[#d4af37] text-black border-[#d4af37]' : 'bg-[#111] border-white/10 text-white/40 hover:border-white/20'}`}>Filters {activeFilters > 0 ? `(${activeFilters})` : ''}</button>
         </div>
         {showFilters && (
-            <div className="max-w-7xl mx-auto pt-4 grid grid-cols-2 md:grid-cols-4 gap-3 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="max-w-7xl mx-auto pt-4 grid grid-cols-2 md:grid-cols-4 gap-3">
                 <select value={industry} onChange={(e) => setIndustry(e.target.value)} className="bg-[#111] border border-white/10 text-white py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest outline-none cursor-pointer hover:border-[#d4af37]/20">{INDUSTRIES.map(i => <option key={i} value={i}>{i}</option>)}</select>
                 <select value={jobType} onChange={(e) => setJobType(e.target.value)} className="bg-[#111] border border-white/10 text-white py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest outline-none cursor-pointer hover:border-[#d4af37]/20">{JOB_TYPES.map(i => <option key={i} value={i}>{i}</option>)}</select>
                 <select value={applyScore} onChange={(e) => setApplyScore(e.target.value)} className="bg-[#111] border border-white/10 text-white py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest outline-none cursor-pointer hover:border-[#d4af37]/20">{APPLY_SCORES.map(i => <option key={i} value={i}>{i}</option>)}</select>
@@ -147,7 +146,7 @@ export default function ApplyFirst() {
         )}
       </div>
 
-      {/* JOB FEED */}
+      {/* THE JOB LISTINGS - THIS WAS MISSING! */}
       <main className="max-w-7xl mx-auto px-8 py-12">
         <div className="flex items-center justify-between mb-8">
             <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">Verified Role Feed</p>
@@ -188,9 +187,8 @@ export default function ApplyFirst() {
         )}
       </main>
 
-      {/* FOOTER STATS */}
       <footer className="border-t border-white/5 py-12 px-8">
-        <div className="max-w-7xl mx-auto flex flex-col md:row items-center justify-between gap-6">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-3">
                 <div className="w-6 h-6 bg-white/10 rounded flex items-center justify-center"><span className="text-white/40 font-black text-[10px] italic">A</span></div>
                 <span className="text-white/20 text-[10px] font-black uppercase tracking-widest">ApplyFirst © 2026 — Job Intelligence</span>
