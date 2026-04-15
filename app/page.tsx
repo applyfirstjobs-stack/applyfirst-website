@@ -606,8 +606,8 @@ export default function ApplyFirst() {
               Companies
             </h1>
             <p className="text-white/40 text-lg md:text-xl max-w-2xl leading-relaxed mb-10">
-              Jobs pulled directly from Stripe, OpenAI, Netflix, Notion and 400,000+ company career pages.
-              <span className="text-white/60 font-bold"> Fresh listings updated automatically every 6 hours.</span>
+              Jobs pulled directly from Stripe, OpenAI, Netflix, Notion and 21,000+ company career pages.
+              <span className="text-white/60 font-bold"> Fresh listings updated automatically 24/7.</span>
             </p>
             <div className="flex flex-wrap gap-4">
               {[
@@ -837,8 +837,8 @@ export default function ApplyFirst() {
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
             { value: `${totalCount.toLocaleString()}+`, label: 'Verified Roles', color: 'text-[#d4af37]' },
-            { value: '6hr', label: 'Update Cycle', color: 'text-emerald-400' },
-            { value: '100+', label: 'Direct Sources', color: 'text-white' },
+            { value: '24/7', label: 'Update Cycle', color: 'text-emerald-400' },
+            { value: '21k+', label: 'Direct Sources', color: 'text-white' },
             { value: '30d', label: 'Max Job Age', color: 'text-[#d4af37]' },
           ].map((stat) => (
             <div key={stat.label}>
