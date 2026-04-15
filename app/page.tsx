@@ -489,10 +489,18 @@ export default function ApplyFirst() {
       q = q.range((page - 1) * PER_PAGE, page * PER_PAGE - 1);
       const { data } = await q;
       setJobs(data || []);
-      setTotalCount(401647);
       setLoading(false);
     }
+
+    async function loadCount() {
+      const { data } = await supabase.rpc('get_jobs_count');
+      if (data) setTotalCount(data);
+    }
+
     load();
+    if (page === 1 && !search && industry === 'All Industries' && jobType === 'All Types' && applyScore === 'All Scores' && location === 'All Locations') {
+      loadCount();
+    }
   }, [search, industry, jobType, applyScore, location, page]);
 
   if (jobDetailView) {
