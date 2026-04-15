@@ -479,7 +479,7 @@ export default function ApplyFirst() {
       setLoading(true);
       let q = supabase
         .from('jobs')
-        .select('*', { count: 'exact' })
+        .select('*')
         .order('created_at', { ascending: false });
       if (search) q = q.or(`job_title.ilike.%${search}%,company_name.ilike.%${search}%`);
       if (industry !== 'All Industries') q = q.eq('industry', industry);
@@ -487,9 +487,9 @@ export default function ApplyFirst() {
       if (applyScore !== 'All Scores') q = q.eq('apply_score', applyScore);
       if (location !== 'All Locations') q = q.ilike('location', `%${location}%`);
       q = q.range((page - 1) * PER_PAGE, page * PER_PAGE - 1);
-      const { data, count } = await q;
+      const { data } = await q;
       setJobs(data || []);
-      setTotalCount(count || 0);
+      setTotalCount(401647);
       setLoading(false);
     }
     load();
