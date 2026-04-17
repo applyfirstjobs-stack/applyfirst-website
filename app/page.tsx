@@ -7,9 +7,6 @@ const SUPABASE_ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13Z3ZkbGVmc2p2ZGN3dHR4enpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzODIzODgsImV4cCI6MjA5MDk1ODM4OH0.vjw_tSybeazSi8DnvL07x1Bx2dCdcDAw-aFPpYQyk6o';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// 48 hours ago timestamp
-const getFreshCutoff = () => new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
-
 const cleanText = (text: any) => {
   if (!text) return '';
   return text
@@ -91,25 +88,22 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     document.title = `${job.job_title} at ${job.company_name} — ApplyFirst`;
     window.history.pushState({}, '', `/jobs/${job.id}`);
-
     const handlePopState = () => { onBack(); };
     window.addEventListener('popstate', handlePopState);
 
     async function loadRelated() {
-      // FIXED: Only fresh jobs (48h) WITH valid apply URLs
-      const cutoff = getFreshCutoff();
+      // Fresh jobs fetched in last 7 days WITH valid apply URLs
+      const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
       const { data } = await supabase
         .from('jobs')
         .select('id,job_title,company_name,industry,apply_score,date_posted,created_at,apply_url,location')
         .eq('industry', job.industry)
         .neq('id', job.id)
-        .gte('date_posted', cutoff)
+        .gte('created_at', cutoff)
         .not('apply_url', 'is', null)
         .neq('apply_url', '')
-        .neq('apply_url', 'null')
         .order('created_at', { ascending: false })
-        .limit(6);
-      // Filter to only valid URLs
+        .limit(12);
       const validJobs = (data || []).filter(r => isValidUrl(r.apply_url));
       setRelatedJobs(validJobs.slice(0, 4));
     }
@@ -139,7 +133,6 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
   };
 
   const handleOpenAgain = () => { if (!openUrl(job.apply_url)) setNoUrlError(true); };
-
   const handleCopy = () => {
     navigator.clipboard.writeText(window.location.href);
     setCopied(true);
@@ -273,18 +266,15 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
                   {relatedJobs.map((r) => {
                     const rs = getScoreStyle(r.apply_score);
                     return (
-                      <div
-                        key={r.id}
-                        onClick={() => setViewJob(r)}
-                        className="flex items-center gap-4 bg-[#0c0c0c] border border-white/5 hover:border-[#d4af37]/15 rounded-2xl p-5 transition-all group cursor-pointer"
-                      >
+                      <div key={r.id} onClick={() => setViewJob(r)}
+                        className="flex items-center gap-4 bg-[#0c0c0c] border border-white/5 hover:border-[#d4af37]/15 rounded-2xl p-5 transition-all group cursor-pointer">
                         <div className="w-10 h-10 bg-[#d4af37]/5 border border-[#d4af37]/10 rounded-xl flex items-center justify-center shrink-0">
                           <span className="text-[#d4af37] font-black text-sm uppercase">{r.company_name?.[0] || 'A'}</span>
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-bold text-white group-hover:text-[#d4af37] transition-colors truncate">{cleanText(r.job_title)}</p>
                           <p className="text-[10px] font-black uppercase tracking-widest text-white/25">
-                            {cleanText(r.company_name)} · {r.location ? `📍 ${r.location} · ` : ''}{getTimeAgo(r.date_posted || r.created_at)}
+                            {cleanText(r.company_name)}{r.location ? ` · 📍 ${r.location}` : ''} · {getTimeAgo(r.date_posted || r.created_at)}
                           </p>
                         </div>
                         {r.apply_score && (
@@ -311,7 +301,6 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
                 </div>
               )}
               <h3 className="text-2xl font-black text-white uppercase tracking-tight mb-2">Apply Now</h3>
-
               {!hasUrl ? (
                 <div className="space-y-4">
                   <p className="text-white/25 text-xs mb-4 leading-relaxed">
@@ -350,13 +339,11 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
                   </button>
                 </div>
               )}
-
               {noUrlError && (
                 <div className="mt-4 bg-red-500/10 border border-red-500/20 rounded-2xl p-3 text-center">
                   <p className="text-red-400 text-[10px] font-black uppercase tracking-widest">No application link available for this role</p>
                 </div>
               )}
-
               <div className="mt-6 pt-6 border-t border-white/5 space-y-3">
                 {[
                   { label: 'Source', value: job.source || 'Direct' },
@@ -427,12 +414,10 @@ export default function ApplyFirst() {
   useEffect(() => {
     async function load() {
       setLoading(true);
-      const cutoff = getFreshCutoff();
       let q = supabase
         .from('jobs')
         .select('*')
-        .gte('date_posted', cutoff)  // FIXED: Only genuinely fresh jobs posted in last 48h
-        .order('date_posted', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (search) q = q.or(`job_title.ilike.%${search}%,company_name.ilike.%${search}%`);
       if (industry !== 'All Industries') q = q.eq('industry', industry);
@@ -555,7 +540,7 @@ export default function ApplyFirst() {
             </h1>
             <p className="text-white/40 text-lg md:text-xl max-w-2xl leading-relaxed mb-10">
               Jobs pulled directly from Stripe, OpenAI, Netflix, Notion and 21,000+ company career pages.
-              <span className="text-white/60 font-bold"> Fresh listings posted in the last 48 hours.</span>
+              <span className="text-white/60 font-bold"> Fresh listings updated automatically 24/7.</span>
             </p>
             <div className="flex flex-wrap gap-4">
               {[
@@ -623,7 +608,7 @@ export default function ApplyFirst() {
       {/* COUNT */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-5 flex items-center justify-between">
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">
-          {loading ? 'Loading...' : `${totalCount.toLocaleString()} ${activeFilters > 0 || search ? 'Filtered' : 'Total'} Roles · Showing Fresh Listings`}
+          {loading ? 'Loading...' : `${totalCount.toLocaleString()} ${activeFilters > 0 || search ? 'Filtered' : 'Verified'} Roles`}
         </p>
         {totalPages > 1 && (
           <p className="text-[10px] font-black uppercase tracking-widest text-white/20">Page {page} / {totalPages}</p>
@@ -639,7 +624,7 @@ export default function ApplyFirst() {
         ) : jobs.length === 0 ? (
           <div className="text-center py-32 border border-dashed border-white/10 rounded-3xl">
             <p className="text-5xl mb-6">🔍</p>
-            <p className="text-white/30 font-black uppercase tracking-widest text-sm mb-2">No fresh roles found</p>
+            <p className="text-white/30 font-black uppercase tracking-widest text-sm mb-2">No matching roles</p>
             <button onClick={resetFilters} className="mt-4 text-[#d4af37] text-xs font-black uppercase tracking-widest hover:text-white transition-colors">
               Clear Filters
             </button>
@@ -751,7 +736,7 @@ export default function ApplyFirst() {
             { value: `${totalCount.toLocaleString()}+`, label: 'Verified Roles', color: 'text-[#d4af37]' },
             { value: '24/7', label: 'Update Cycle', color: 'text-emerald-400' },
             { value: '21k+', label: 'Direct Sources', color: 'text-white' },
-            { value: '48h', label: 'Max Job Age Shown', color: 'text-[#d4af37]' },
+            { value: '30d', label: 'Max Job Age', color: 'text-[#d4af37]' },
           ].map((stat) => (
             <div key={stat.label}>
               <p className={`text-4xl md:text-5xl font-black ${stat.color}`}>{stat.value}</p>
