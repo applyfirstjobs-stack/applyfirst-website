@@ -10,14 +10,14 @@ export const revalidate = 86400;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages: MetadataRoute.Sitemap = [
-    { url: 'https://applyfirstjobs.com', lastModified: new Date(), changeFrequency: 'hourly', priority: 1 },
-    { url: 'https://applyfirstjobs.com/privacy', lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
-    { url: 'https://applyfirstjobs.com/terms', lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
-    { url: 'https://applyfirstjobs.com/contact', lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
+    { url: 'https://www.applyfirstjobs.com', lastModified: new Date(), changeFrequency: 'hourly', priority: 1 },
+    { url: 'https://www.applyfirstjobs.com/privacy', lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
+    { url: 'https://www.applyfirstjobs.com/terms', lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
+    { url: 'https://www.applyfirstjobs.com/contact', lastModified: new Date(), changeFrequency: 'monthly', priority: 0.3 },
   ];
 
   try {
-    // Fetch latest 50,000 jobs (Google sitemap limit per file)
+    // Fetch latest 50,000 jobs for main sitemap
     const { data: jobs } = await supabase
       .from('jobs')
       .select('id, created_at')
@@ -25,7 +25,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .limit(50000);
 
     const jobUrls: MetadataRoute.Sitemap = (jobs || []).map((job) => ({
-      url: `https://applyfirstjobs.com/jobs/${job.id}`,
+      url: `https://www.applyfirstjobs.com/jobs/${job.id}`,
       lastModified: new Date(job.created_at),
       changeFrequency: 'daily' as const,
       priority: 0.7,
