@@ -60,7 +60,7 @@ export default async function JobPage({ params }: Props) {
     .select('id, job_title, company_name, location, apply_score, date_posted, created_at, industry, apply_url')
     .eq('industry', job?.industry || 'Technology')
     .neq('id', params.id)
-    .gte('date_posted', cutoff)
+   .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
     .not('apply_url', 'is', null)
     .neq('apply_url', '')
     .order('date_posted', { ascending: false })
