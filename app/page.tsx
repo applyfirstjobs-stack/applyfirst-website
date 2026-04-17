@@ -7,6 +7,9 @@ const SUPABASE_ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13Z3ZkbGVmc2p2ZGN3dHR4enpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzODIzODgsImV4cCI6MjA5MDk1ODM4OH0.vjw_tSybeazSi8DnvL07x1Bx2dCdcDAw-aFPpYQyk6o';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// 48 hours ago timestamp
+const getFreshCutoff = () => new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+
 const cleanText = (text: any) => {
   if (!text) return '';
   return text
@@ -19,8 +22,6 @@ const cleanText = (text: any) => {
 
 const getTimeAgo = (dateString: any) => {
   if (!dateString) return 'Recently';
-
-  // Handle Workday's text format e.g. "Posted 2 Days Ago"
   const str = String(dateString);
   const postedMatch = str.match(/Posted\s+(\d+)\s+Day/i);
   if (postedMatch) return `${postedMatch[1]}d ago`;
@@ -28,8 +29,6 @@ const getTimeAgo = (dateString: any) => {
   if (str.toLowerCase().includes('yesterday')) return 'Yesterday';
   const hourMatch = str.match(/(\d+)\s+hour/i);
   if (hourMatch) return `${hourMatch[1]}h ago`;
-
-  // Handle real date strings
   const date = new Date(dateString);
   if (isNaN(date.getTime())) return 'Recently';
   const diff = new Date().getTime() - date.getTime();
@@ -43,28 +42,12 @@ const getTimeAgo = (dateString: any) => {
 
 const getScoreStyle = (score: string) => {
   if (score === 'High Chance')
-    return {
-      bg: 'bg-emerald-500/10',
-      border: 'border-emerald-500/30',
-      text: 'text-emerald-400',
-      dot: 'bg-emerald-400',
-    };
+    return { bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', text: 'text-emerald-400', dot: 'bg-emerald-400' };
   if (score === 'Medium Chance')
-    return {
-      bg: 'bg-amber-500/10',
-      border: 'border-amber-500/30',
-      text: 'text-amber-400',
-      dot: 'bg-amber-400',
-    };
-  return {
-    bg: 'bg-white/5',
-    border: 'border-white/10',
-    text: 'text-white/30',
-    dot: 'bg-white/20',
-  };
+    return { bg: 'bg-amber-500/10', border: 'border-amber-500/30', text: 'text-amber-400', dot: 'bg-amber-400' };
+  return { bg: 'bg-white/5', border: 'border-white/10', text: 'text-white/30', dot: 'bg-white/20' };
 };
 
-// ─── URL VALIDATION ────────────────────────────────────────────────────────
 const isValidUrl = (url: any): boolean => {
   if (!url) return false;
   const str = String(url).trim();
@@ -72,9 +55,7 @@ const isValidUrl = (url: any): boolean => {
   try {
     const parsed = new URL(str);
     return parsed.protocol === 'http:' || parsed.protocol === 'https:';
-  } catch {
-    return false;
-  }
+  } catch { return false; }
 };
 
 const openUrl = (url: any) => {
@@ -87,6 +68,7 @@ const INDUSTRIES = [
   'All Industries', 'AI', 'Technology', 'Finance', 'Marketing',
   'Design', 'Sales', 'Data', 'Product', 'Healthcare',
   'Customer Success', 'HR', 'Legal', 'Operations', 'Education',
+  'Logistics', 'Manufacturing', 'Hospitality', 'Retail',
 ];
 const JOB_TYPES = ['All Types', 'Full Time', 'Contract', 'Part Time', 'Internship'];
 const APPLY_SCORES = ['All Scores', 'High Chance', 'Medium Chance', 'Standard'];
@@ -110,21 +92,26 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
     document.title = `${job.job_title} at ${job.company_name} — ApplyFirst`;
     window.history.pushState({}, '', `/jobs/${job.id}`);
 
-    // Handle browser back button
-    const handlePopState = () => {
-      onBack();
-    };
+    const handlePopState = () => { onBack(); };
     window.addEventListener('popstate', handlePopState);
 
     async function loadRelated() {
+      // FIXED: Only fresh jobs (48h) WITH valid apply URLs
+      const cutoff = getFreshCutoff();
       const { data } = await supabase
         .from('jobs')
-        .select('id,job_title,company_name,industry,apply_score,date_posted,created_at')
+        .select('id,job_title,company_name,industry,apply_score,date_posted,created_at,apply_url,location')
         .eq('industry', job.industry)
         .neq('id', job.id)
+        .gte('date_posted', cutoff)
+        .not('apply_url', 'is', null)
+        .neq('apply_url', '')
+        .neq('apply_url', 'null')
         .order('created_at', { ascending: false })
-        .limit(4);
-      setRelatedJobs(data || []);
+        .limit(6);
+      // Filter to only valid URLs
+      const validJobs = (data || []).filter(r => isValidUrl(r.apply_url));
+      setRelatedJobs(validJobs.slice(0, 4));
     }
     if (job.industry) loadRelated();
 
@@ -139,17 +126,11 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
 
   const handleApply = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!hasUrl) {
-      setNoUrlError(true);
-      return;
-    }
+    if (!hasUrl) { setNoUrlError(true); return; }
     setSubmitting(true);
     try {
       await supabase.from('leads').insert([{
-        email,
-        job_title: job.job_title,
-        company_name: job.company_name,
-        source: 'job_page',
+        email, job_title: job.job_title, company_name: job.company_name, source: 'job_page',
       }]);
     } catch {}
     setApplied(true);
@@ -157,11 +138,7 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
     openUrl(job.apply_url);
   };
 
-  const handleOpenAgain = () => {
-    if (!openUrl(job.apply_url)) {
-      setNoUrlError(true);
-    }
-  };
+  const handleOpenAgain = () => { if (!openUrl(job.apply_url)) setNoUrlError(true); };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -188,13 +165,10 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
       <div className="max-w-6xl mx-auto px-4 md:px-8 py-10 md:py-16">
         <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
           <div className="md:col-span-2 space-y-6">
-            {/* HEADER */}
             <div className="bg-[#0c0c0c] border border-white/5 rounded-3xl p-8 md:p-10">
               <div className="flex items-start gap-6 mb-8">
                 <div className="w-20 h-20 bg-[#d4af37]/5 border border-[#d4af37]/20 rounded-2xl flex items-center justify-center shrink-0">
-                  <span className="text-[#d4af37] font-black text-3xl uppercase">
-                    {job.company_name?.[0] || 'A'}
-                  </span>
+                  <span className="text-[#d4af37] font-black text-3xl uppercase">{job.company_name?.[0] || 'A'}</span>
                 </div>
                 <div className="flex-1 min-w-0 pt-1">
                   <h1 className="text-2xl md:text-3xl font-black text-white leading-tight mb-3 uppercase tracking-tight">
@@ -245,7 +219,6 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
               </div>
             </div>
 
-            {/* DESCRIPTION */}
             {job.description && (
               <div className="bg-[#0c0c0c] border border-white/5 rounded-3xl p-8">
                 <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-[#d4af37]/40 mb-5">About This Role</h2>
@@ -253,7 +226,6 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
               </div>
             )}
 
-            {/* FUNDING */}
             {(job.funding_amount || job.funding_round) && (
               <div className="bg-[#d4af37]/5 border border-[#d4af37]/15 rounded-3xl p-8">
                 <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-[#d4af37]/40 mb-6">💰 Funding Intelligence</h2>
@@ -275,7 +247,6 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
               </div>
             )}
 
-            {/* WHY APPLY NOW */}
             <div className="bg-[#d4af37]/5 border border-[#d4af37]/15 rounded-3xl p-8">
               <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-[#d4af37]/50 mb-6">⚡ Why Apply Now</h2>
               <div className="space-y-4">
@@ -295,10 +266,9 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
               </div>
             </div>
 
-            {/* RELATED JOBS */}
             {relatedJobs.length > 0 && (
               <div>
-                <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 mb-5">More {job.industry} Roles</h2>
+                <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 mb-5">🔥 Fresh {job.industry} Roles</h2>
                 <div className="space-y-2">
                   {relatedJobs.map((r) => {
                     const rs = getScoreStyle(r.apply_score);
@@ -314,7 +284,7 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-bold text-white group-hover:text-[#d4af37] transition-colors truncate">{cleanText(r.job_title)}</p>
                           <p className="text-[10px] font-black uppercase tracking-widest text-white/25">
-                            {cleanText(r.company_name)} · {getTimeAgo(r.date_posted || r.created_at)}
+                            {cleanText(r.company_name)} · {r.location ? `📍 ${r.location} · ` : ''}{getTimeAgo(r.date_posted || r.created_at)}
                           </p>
                         </div>
                         {r.apply_score && (
@@ -332,7 +302,6 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
             )}
           </div>
 
-          {/* SIDEBAR */}
           <div className="space-y-5">
             <div className="bg-[#0c0c0c] border border-white/5 rounded-3xl p-8 sticky top-24">
               {job.apply_score && (
@@ -344,18 +313,13 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
               <h3 className="text-2xl font-black text-white uppercase tracking-tight mb-2">Apply Now</h3>
 
               {!hasUrl ? (
-                /* NO URL — show message instead of apply form */
                 <div className="space-y-4">
                   <p className="text-white/25 text-xs mb-4 leading-relaxed">
                     The direct application link for this role is not available. Search for <strong className="text-white/40">{cleanText(job.job_title)}</strong> on {cleanText(job.company_name)}'s careers page.
                   </p>
                   {job.company_website && (
-                    <a
-                      href={job.company_website}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block w-full bg-[#d4af37] text-black py-4 rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] hover:bg-white transition-all text-center"
-                    >
+                    <a href={job.company_website} target="_blank" rel="noopener noreferrer"
+                      className="block w-full bg-[#d4af37] text-black py-4 rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] hover:bg-white transition-all text-center">
                       Visit Company Website →
                     </a>
                   )}
@@ -368,19 +332,11 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
                   <p className="text-white/25 text-xs mb-6 leading-relaxed">
                     Enter your email and we'll open the official career page at {cleanText(job.company_name)}.
                   </p>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                  <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
-                    className="w-full bg-[#111] border border-white/10 px-5 py-4 rounded-2xl outline-none text-sm text-white placeholder:text-white/20 focus:border-[#d4af37]/30 transition-all"
-                  />
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className="w-full bg-[#d4af37] text-black py-4 rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] hover:bg-white transition-all disabled:opacity-50"
-                  >
+                    className="w-full bg-[#111] border border-white/10 px-5 py-4 rounded-2xl outline-none text-sm text-white placeholder:text-white/20 focus:border-[#d4af37]/30 transition-all" />
+                  <button type="submit" disabled={submitting}
+                    className="w-full bg-[#d4af37] text-black py-4 rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] hover:bg-white transition-all disabled:opacity-50">
                     {submitting ? 'Opening...' : 'Apply Now →'}
                   </button>
                 </form>
@@ -388,10 +344,8 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
                 <div className="space-y-4 text-center">
                   <div className="text-4xl">✅</div>
                   <p className="text-emerald-400 font-black text-xs uppercase tracking-widest">Application page opened!</p>
-                  <button
-                    onClick={handleOpenAgain}
-                    className="w-full border border-white/10 text-white/40 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:border-[#d4af37]/20 hover:text-white transition-all"
-                  >
+                  <button onClick={handleOpenAgain}
+                    className="w-full border border-white/10 text-white/40 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:border-[#d4af37]/20 hover:text-white transition-all">
                     Open Again →
                   </button>
                 </div>
@@ -416,10 +370,8 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
                   </div>
                 ))}
               </div>
-              <button
-                onClick={handleCopy}
-                className="mt-6 w-full border border-white/10 text-white/30 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:border-[#d4af37]/20 hover:text-white transition-all"
-              >
+              <button onClick={handleCopy}
+                className="mt-6 w-full border border-white/10 text-white/30 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:border-[#d4af37]/20 hover:text-white transition-all">
                 {copied ? '✅ Link Copied!' : '🔗 Copy Job Link'}
               </button>
             </div>
@@ -427,10 +379,8 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
               <p className="text-2xl mb-4">📬</p>
               <h4 className="text-xl font-black text-white uppercase tracking-tight mb-2">Get Weekly Alerts</h4>
               <p className="text-white/25 text-xs mb-5">Fresh {job.industry} roles every Monday</p>
-              <button
-                onClick={onBack}
-                className="inline-block bg-[#d4af37]/10 border border-[#d4af37]/20 text-[#d4af37] px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-[#d4af37]/20 transition-all"
-              >
+              <button onClick={onBack}
+                className="inline-block bg-[#d4af37]/10 border border-[#d4af37]/20 text-[#d4af37] px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-[#d4af37]/20 transition-all">
                 Browse All Jobs
               </button>
             </div>
@@ -477,10 +427,13 @@ export default function ApplyFirst() {
   useEffect(() => {
     async function load() {
       setLoading(true);
+      const cutoff = getFreshCutoff();
       let q = supabase
         .from('jobs')
         .select('*')
-        .order('created_at', { ascending: false });
+        .gte('date_posted', cutoff)  // FIXED: Only genuinely fresh jobs posted in last 48h
+        .order('date_posted', { ascending: false });
+
       if (search) q = q.or(`job_title.ilike.%${search}%,company_name.ilike.%${search}%`);
       if (industry !== 'All Industries') q = q.eq('industry', industry);
       if (jobType !== 'All Types') q = q.eq('job_type', jobType);
@@ -498,9 +451,7 @@ export default function ApplyFirst() {
     }
 
     load();
-    if (page === 1) {
-      loadCount();
-    }
+    if (page === 1) loadCount();
   }, [search, industry, jobType, applyScore, location, page]);
 
   if (jobDetailView) {
@@ -548,10 +499,8 @@ export default function ApplyFirst() {
     setApplying(true);
     try {
       await supabase.from('leads').insert([{
-        email: applyEmail,
-        job_title: selectedJob.job_title,
-        company_name: selectedJob.company_name,
-        source: 'apply_modal',
+        email: applyEmail, job_title: selectedJob.job_title,
+        company_name: selectedJob.company_name, source: 'apply_modal',
       }]);
     } catch {}
     openUrl(selectedJob.apply_url);
@@ -582,8 +531,7 @@ export default function ApplyFirst() {
           </div>
           <button
             onClick={() => document.getElementById('get-alerts')?.scrollIntoView({ behavior: 'smooth' })}
-            className="bg-[#d4af37] text-black px-5 py-2 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-white transition-all shrink-0"
-          >
+            className="bg-[#d4af37] text-black px-5 py-2 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-white transition-all shrink-0">
             Get Alerts
           </button>
         </div>
@@ -607,7 +555,7 @@ export default function ApplyFirst() {
             </h1>
             <p className="text-white/40 text-lg md:text-xl max-w-2xl leading-relaxed mb-10">
               Jobs pulled directly from Stripe, OpenAI, Netflix, Notion and 21,000+ company career pages.
-              <span className="text-white/60 font-bold"> Fresh listings updated automatically 24/7.</span>
+              <span className="text-white/60 font-bold"> Fresh listings posted in the last 48 hours.</span>
             </p>
             <div className="flex flex-wrap gap-4">
               {[
@@ -633,25 +581,15 @@ export default function ApplyFirst() {
               <svg className="w-4 h-4 text-white/20 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <input
-                type="text"
-                placeholder="Search roles, companies, skills..."
+              <input type="text" placeholder="Search roles, companies, skills..."
                 className="bg-transparent flex-1 outline-none text-sm text-white placeholder:text-white/20"
-                value={search}
-                onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              />
-              {search && (
-                <button onClick={() => setSearch('')} className="text-white/20 hover:text-white text-sm">✕</button>
-              )}
+                value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} />
+              {search && <button onClick={() => setSearch('')} className="text-white/20 hover:text-white text-sm">✕</button>}
             </div>
-            <button
-              onClick={() => setShowFilters(!showFilters)}
+            <button onClick={() => setShowFilters(!showFilters)}
               className={`flex items-center gap-2 px-5 py-3 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all ${
-                showFilters || activeFilters > 0
-                  ? 'bg-[#d4af37] text-black border-[#d4af37]'
-                  : 'bg-[#111] border-white/10 text-white/40 hover:border-white/20'
-              }`}
-            >
+                showFilters || activeFilters > 0 ? 'bg-[#d4af37] text-black border-[#d4af37]' : 'bg-[#111] border-white/10 text-white/40 hover:border-white/20'
+              }`}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
               </svg>
@@ -666,22 +604,14 @@ export default function ApplyFirst() {
                 { value: applyScore, setter: setApplyScore, options: APPLY_SCORES },
                 { value: location, setter: setLocation, options: LOCATIONS },
               ].map((f, i) => (
-                <select
-                  key={i}
-                  value={f.value}
-                  onChange={(e) => { f.setter(e.target.value); setPage(1); }}
-                  className="bg-[#111] border border-white/10 text-white py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest outline-none cursor-pointer hover:border-[#d4af37]/20 transition-all"
-                >
-                  {f.options.map((o) => (
-                    <option key={o} value={o}>{o}</option>
-                  ))}
+                <select key={i} value={f.value} onChange={(e) => { f.setter(e.target.value); setPage(1); }}
+                  className="bg-[#111] border border-white/10 text-white py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest outline-none cursor-pointer hover:border-[#d4af37]/20 transition-all">
+                  {f.options.map((o) => <option key={o} value={o}>{o}</option>)}
                 </select>
               ))}
               {activeFilters > 0 && (
-                <button
-                  onClick={resetFilters}
-                  className="col-span-2 md:col-span-4 text-[10px] font-black uppercase tracking-widest text-[#d4af37]/50 hover:text-[#d4af37] transition-colors py-1"
-                >
+                <button onClick={resetFilters}
+                  className="col-span-2 md:col-span-4 text-[10px] font-black uppercase tracking-widest text-[#d4af37]/50 hover:text-[#d4af37] transition-colors py-1">
                   ✕ Clear All Filters
                 </button>
               )}
@@ -693,7 +623,7 @@ export default function ApplyFirst() {
       {/* COUNT */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-5 flex items-center justify-between">
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">
-          {loading ? 'Loading...' : `${totalCount.toLocaleString()} ${activeFilters > 0 || search ? 'Filtered' : 'Verified'} Roles`}
+          {loading ? 'Loading...' : `${totalCount.toLocaleString()} ${activeFilters > 0 || search ? 'Filtered' : 'Total'} Roles · Showing Fresh Listings`}
         </p>
         {totalPages > 1 && (
           <p className="text-[10px] font-black uppercase tracking-widest text-white/20">Page {page} / {totalPages}</p>
@@ -704,14 +634,12 @@ export default function ApplyFirst() {
       <main className="max-w-7xl mx-auto px-4 md:px-8 pb-20">
         {loading ? (
           <div className="space-y-3">
-            {[...Array(8)].map((_, i) => (
-              <div key={i} className="h-20 rounded-2xl bg-[#111] animate-pulse" />
-            ))}
+            {[...Array(8)].map((_, i) => <div key={i} className="h-20 rounded-2xl bg-[#111] animate-pulse" />)}
           </div>
         ) : jobs.length === 0 ? (
           <div className="text-center py-32 border border-dashed border-white/10 rounded-3xl">
             <p className="text-5xl mb-6">🔍</p>
-            <p className="text-white/30 font-black uppercase tracking-widest text-sm mb-2">No matching roles</p>
+            <p className="text-white/30 font-black uppercase tracking-widest text-sm mb-2">No fresh roles found</p>
             <button onClick={resetFilters} className="mt-4 text-[#d4af37] text-xs font-black uppercase tracking-widest hover:text-white transition-colors">
               Clear Filters
             </button>
@@ -722,11 +650,9 @@ export default function ApplyFirst() {
               const sc = getScoreStyle(job.apply_score);
               const jobHasUrl = isValidUrl(job.apply_url);
               return (
-                <div
-                  key={job.id}
+                <div key={job.id}
                   className="group bg-[#0c0c0c] hover:bg-[#111] border border-white/5 hover:border-[#d4af37]/15 rounded-2xl px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center gap-5 transition-all duration-200 cursor-pointer"
-                  onClick={() => setJobDetailView(job)}
-                >
+                  onClick={() => setJobDetailView(job)}>
                   <div className="w-12 h-12 bg-[#d4af37]/5 border border-[#d4af37]/10 rounded-xl flex items-center justify-center shrink-0 group-hover:border-[#d4af37]/25 transition-all">
                     <span className="text-[#d4af37] font-black text-lg uppercase">{job.company_name?.[0] || 'A'}</span>
                   </div>
@@ -752,17 +678,13 @@ export default function ApplyFirst() {
                       </div>
                     )}
                     {jobHasUrl ? (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setSelectedJob(job); }}
-                        className="bg-white text-black px-6 py-2.5 rounded-full font-black text-[10px] uppercase tracking-[0.2em] hover:bg-[#d4af37] transition-all"
-                      >
+                      <button onClick={(e) => { e.stopPropagation(); setSelectedJob(job); }}
+                        className="bg-white text-black px-6 py-2.5 rounded-full font-black text-[10px] uppercase tracking-[0.2em] hover:bg-[#d4af37] transition-all">
                         Apply
                       </button>
                     ) : (
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setJobDetailView(job); }}
-                        className="bg-white/10 text-white/40 px-6 py-2.5 rounded-full font-black text-[10px] uppercase tracking-[0.2em] hover:bg-white/20 transition-all"
-                      >
+                      <button onClick={(e) => { e.stopPropagation(); setJobDetailView(job); }}
+                        className="bg-white/10 text-white/40 px-6 py-2.5 rounded-full font-black text-[10px] uppercase tracking-[0.2em] hover:bg-white/20 transition-all">
                         View
                       </button>
                     )}
@@ -773,22 +695,17 @@ export default function ApplyFirst() {
           </div>
         )}
 
-        {/* PAGINATION */}
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-3 mt-12">
-            <button
-              onClick={() => { setPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            <button onClick={() => { setPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
               disabled={page === 1}
-              className="px-6 py-3 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white hover:border-white/30 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
-            >
+              className="px-6 py-3 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white hover:border-white/30 disabled:opacity-20 disabled:cursor-not-allowed transition-all">
               ← Prev
             </button>
             <span className="text-[10px] font-black uppercase tracking-widest text-white/20">{page} / {totalPages}</span>
-            <button
-              onClick={() => { setPage((p) => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            <button onClick={() => { setPage((p) => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
               disabled={page === totalPages}
-              className="px-6 py-3 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white hover:border-white/30 disabled:opacity-20 disabled:cursor-not-allowed transition-all"
-            >
+              className="px-6 py-3 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white hover:border-white/30 disabled:opacity-20 disabled:cursor-not-allowed transition-all">
               Next →
             </button>
           </div>
@@ -806,18 +723,13 @@ export default function ApplyFirst() {
             Get Fresh Jobs<br /><span className="text-[#d4af37]">Every Monday</span>
           </h2>
           <p className="text-white/30 mb-10 max-w-md mx-auto leading-relaxed">
-            Fresh remote jobs from top company career pages delivered to your inbox every Monday morning.
+            Fresh jobs from top company career pages delivered to your inbox every Monday morning.
           </p>
           {!subscribed ? (
             <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-              <input
-                type="email"
-                required
-                placeholder="your@email.com"
+              <input type="email" required placeholder="your@email.com"
                 className="flex-1 bg-[#111] border border-white/10 px-6 py-4 rounded-full text-sm text-white outline-none focus:border-[#d4af37]/30 transition-all placeholder:text-white/20"
-                value={alertEmail}
-                onChange={(e) => setAlertEmail(e.target.value)}
-              />
+                value={alertEmail} onChange={(e) => setAlertEmail(e.target.value)} />
               <button type="submit" className="bg-[#d4af37] text-black px-8 py-4 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-white transition-all">
                 Join Free
               </button>
@@ -839,7 +751,7 @@ export default function ApplyFirst() {
             { value: `${totalCount.toLocaleString()}+`, label: 'Verified Roles', color: 'text-[#d4af37]' },
             { value: '24/7', label: 'Update Cycle', color: 'text-emerald-400' },
             { value: '21k+', label: 'Direct Sources', color: 'text-white' },
-            { value: '30d', label: 'Max Job Age', color: 'text-[#d4af37]' },
+            { value: '48h', label: 'Max Job Age Shown', color: 'text-[#d4af37]' },
           ].map((stat) => (
             <div key={stat.label}>
               <p className={`text-4xl md:text-5xl font-black ${stat.color}`}>{stat.value}</p>
@@ -876,15 +788,11 @@ export default function ApplyFirst() {
 
       {/* QUICK APPLY MODAL */}
       {selectedJob && (
-        <div
-          className="fixed inset-0 bg-black/95 backdrop-blur-2xl flex items-center justify-center z-[100] p-6"
-          onClick={(e) => { if (e.target === e.currentTarget) setSelectedJob(null); }}
-        >
+        <div className="fixed inset-0 bg-black/95 backdrop-blur-2xl flex items-center justify-center z-[100] p-6"
+          onClick={(e) => { if (e.target === e.currentTarget) setSelectedJob(null); }}>
           <div className="bg-[#0c0c0c] w-full max-w-md rounded-3xl p-8 shadow-2xl border border-white/10 relative">
-            <button
-              onClick={() => setSelectedJob(null)}
-              className="absolute top-5 right-5 w-8 h-8 bg-white/5 hover:bg-white/10 rounded-full flex items-center justify-center text-white/30 hover:text-white transition-all text-sm"
-            >
+            <button onClick={() => setSelectedJob(null)}
+              className="absolute top-5 right-5 w-8 h-8 bg-white/5 hover:bg-white/10 rounded-full flex items-center justify-center text-white/30 hover:text-white transition-all text-sm">
               ✕
             </button>
             <div className="flex items-center gap-4 mb-6">
@@ -921,28 +829,18 @@ export default function ApplyFirst() {
               <p className="text-white/30 text-xs leading-relaxed mb-6 line-clamp-2">{cleanText(selectedJob.description)}</p>
             )}
             <form onSubmit={handleApply} className="space-y-3">
-              <input
-                type="email"
-                required
-                value={applyEmail}
-                onChange={(e) => setApplyEmail(e.target.value)}
+              <input type="email" required value={applyEmail} onChange={(e) => setApplyEmail(e.target.value)}
                 placeholder="Enter your email to apply"
-                className="w-full bg-[#111] border border-white/10 px-5 py-4 rounded-2xl outline-none text-sm text-white placeholder:text-white/20 focus:border-[#d4af37]/30 transition-all"
-              />
-              <button
-                type="submit"
-                disabled={applying}
-                className="w-full bg-[#d4af37] text-black py-4 rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] hover:bg-white transition-all disabled:opacity-50"
-              >
+                className="w-full bg-[#111] border border-white/10 px-5 py-4 rounded-2xl outline-none text-sm text-white placeholder:text-white/20 focus:border-[#d4af37]/30 transition-all" />
+              <button type="submit" disabled={applying}
+                className="w-full bg-[#d4af37] text-black py-4 rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] hover:bg-white transition-all disabled:opacity-50">
                 {applying ? 'Opening...' : 'Apply Now →'}
               </button>
             </form>
             <p className="text-white/20 text-[10px] text-center mt-4">Opens the official company careers page</p>
             <div className="mt-4 pt-4 border-t border-white/5 text-center">
-              <button
-                onClick={() => { setJobDetailView(selectedJob); setSelectedJob(null); }}
-                className="text-[10px] font-black uppercase tracking-widest text-white/20 hover:text-[#d4af37] transition-colors"
-              >
+              <button onClick={() => { setJobDetailView(selectedJob); setSelectedJob(null); }}
+                className="text-[10px] font-black uppercase tracking-widest text-white/20 hover:text-[#d4af37] transition-colors">
                 View Full Job Page →
               </button>
             </div>
