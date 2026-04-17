@@ -54,16 +54,10 @@ export default async function JobPage({ params }: Props) {
     .single();
 
   // FIXED: Related jobs — fresh (48h) + valid apply URLs only
-  const cutoff = getFreshCutoff();
-  const { data: relatedRaw } = await supabase
-    .from('jobs')
-    .select('id, job_title, company_name, location, apply_score, date_posted, created_at, industry, apply_url')
-    .eq('industry', job?.industry || 'Technology')
-    .neq('id', params.id)
-   .gte('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
-    .not('apply_url', 'is', null)
-    .neq('apply_url', '')
-    .order('date_posted', { ascending: false })
+ let q = supabase
+  .from('jobs')
+  .select('*')
+  .order('created_at', { ascending: false });
     .limit(12);
 
   // Filter to only valid URLs
