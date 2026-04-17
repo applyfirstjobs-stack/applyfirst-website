@@ -129,7 +129,7 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
     if (job.industry) loadRelated();
 
     return () => {
-      document.title = 'ApplyFirst — Fresh Remote Jobs Updated Every 6 Hours';
+      document.title = 'ApplyFirst — Fresh Jobs Direct From Companies';
       window.removeEventListener('popstate', handlePopState);
       window.history.pushState({}, '', '/');
     };
@@ -281,7 +281,7 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
               <div className="space-y-4">
                 {[
                   { icon: '🎯', title: 'Fresh Listing', desc: `This role was posted ${getTimeAgo(job.date_posted || job.created_at)}. Earlier applicants get more attention.` },
-                  { icon: '🔄', title: 'Updated Every 6 Hours', desc: 'ApplyFirst refreshes job data automatically so you never miss a fresh opening.' },
+                  { icon: '🔄', title: 'Updated Daily', desc: 'ApplyFirst refreshes job data automatically so you never miss a fresh opening.' },
                   { icon: '🏢', title: 'Direct From Company', desc: 'This listing links directly to the official company careers page — no middlemen.' },
                 ].map((item) => (
                   <div key={item.title} className="flex items-start gap-4">
@@ -498,7 +498,7 @@ export default function ApplyFirst() {
     }
 
     load();
-    if (page === 1 && !search && industry === 'All Industries' && jobType === 'All Types' && applyScore === 'All Scores' && location === 'All Locations') {
+    if (page === 1) {
       loadCount();
     }
   }, [search, industry, jobType, applyScore, location, page]);
@@ -597,7 +597,7 @@ export default function ApplyFirst() {
             <div className="flex items-center gap-3 mb-8">
               <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-4 py-2 rounded-full">
                 <span className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-                <span className="text-emerald-400 text-[10px] font-black uppercase tracking-[0.3em]">Updated Every 6 Hours</span>
+                <span className="text-emerald-400 text-[10px] font-black uppercase tracking-[0.3em]">Updated Daily</span>
               </div>
             </div>
             <h1 className="text-6xl md:text-8xl lg:text-[100px] font-black text-white leading-none tracking-tighter mb-6 uppercase">
@@ -861,7 +861,7 @@ export default function ApplyFirst() {
           <div className="flex flex-wrap justify-center gap-4 text-[10px] font-black uppercase tracking-widest text-white/20">
             <span>Jobs from public career pages</span>
             <span>·</span>
-            <span>Updated every 6 hours</span>
+            <span>Updated Daily</span>
             <span>·</span>
             <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>
             <span>·</span>
