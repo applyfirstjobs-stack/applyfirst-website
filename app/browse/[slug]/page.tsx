@@ -1,16 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { getAllSlugs, parseSlug, CATEGORIES, LOCATIONS } from '@/lib/seo-slugs';
+import { parseSlug, CATEGORIES, LOCATIONS } from '@/lib/seo-slugs';
 
 const SUPABASE_URL = 'https://mwgvdlefsjvdcwttxzzj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13Z3ZkbGVmc2p2ZGN3dHR4enpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzODIzODgsImV4cCI6MjA5MDk1ODM4OH0.vjw_tSybeazSi8DnvL07x1Bx2dCdcDAw-aFPpYQyk6o';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-export async function generateStaticParams() {
-  const slugs = getAllSlugs();
-  return slugs.map(slug => ({ slug }));
-}
+// ✅ Dynamic rendering — no static build timeout
+export const dynamic = 'force-dynamic';
+export const revalidate = 3600; // Cache for 1 hour
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const parsed = parseSlug(params.slug);
@@ -190,7 +189,6 @@ export default async function BrowsePage({ params }: { params: { slug: string } 
           </div>
         )}
 
-        {/* VIEW ALL LINK */}
         <div className="text-center mt-12">
           <Link href="/"
             className="inline-block bg-[#d4af37] text-black px-8 py-4 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-white transition-all">
