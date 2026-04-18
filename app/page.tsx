@@ -699,12 +699,22 @@ export default function ApplyFirst() {
       {/* BROWSE BY — Internal Linking for SEO */}
       <section className="border-t border-white/5 bg-[#050505]">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-16">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 mb-10">Browse Jobs By</p>
+
+          <div className="flex items-center justify-between mb-10">
+            <p className="text-sm font-bold uppercase tracking-widest text-white/50">Browse Jobs By</p>
+            {activeFilters > 0 && (
+              <button onClick={resetFilters}
+                className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#d4af37] border border-[#d4af37]/30 bg-[#d4af37]/10 px-4 py-2 rounded-full hover:bg-[#d4af37]/20 transition-all">
+                ✕ Clear All Filters ({activeFilters})
+              </button>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
 
             {/* By Category */}
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#d4af37]/40 mb-5">Category</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-[#d4af37]/70 mb-5">Category</p>
               <div className="flex flex-wrap gap-2">
                 {[
                   'Software', 'AI', 'Marketing', 'Finance', 'Design',
@@ -713,7 +723,11 @@ export default function ApplyFirst() {
                 ].map((cat) => (
                   <button key={cat}
                     onClick={() => { setIndustry(cat); setPage(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                    className="text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-[#d4af37] border border-white/5 hover:border-[#d4af37]/20 px-3 py-2 rounded-full transition-all">
+                    className={`text-xs font-semibold px-4 py-2 rounded-full border transition-all ${
+                      industry === cat
+                        ? 'bg-[#d4af37] text-black border-[#d4af37] font-bold'
+                        : 'text-white/60 hover:text-white border-white/10 hover:border-[#d4af37]/30 hover:bg-[#d4af37]/5'
+                    }`}>
                     {cat}
                   </button>
                 ))}
@@ -722,15 +736,19 @@ export default function ApplyFirst() {
 
             {/* By Location */}
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#d4af37]/40 mb-5">Location</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-[#d4af37]/70 mb-5">Location</p>
               <div className="flex flex-wrap gap-2">
                 {[
                   'Remote', 'USA', 'UK', 'Europe', 'Australia',
-                  'India', 'Singapore', 'Germany', 'Netherlands', 'UAE',
+                  'Singapore', 'Germany', 'Netherlands', 'UAE', 'Canada',
                 ].map((loc) => (
                   <button key={loc}
                     onClick={() => { setLocation(loc); setPage(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                    className="text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-[#d4af37] border border-white/5 hover:border-[#d4af37]/20 px-3 py-2 rounded-full transition-all">
+                    className={`text-xs font-semibold px-4 py-2 rounded-full border transition-all ${
+                      location === loc
+                        ? 'bg-[#d4af37] text-black border-[#d4af37] font-bold'
+                        : 'text-white/60 hover:text-white border-white/10 hover:border-[#d4af37]/30 hover:bg-[#d4af37]/5'
+                    }`}>
                     {loc}
                   </button>
                 ))}
@@ -739,23 +757,31 @@ export default function ApplyFirst() {
 
             {/* By Type */}
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#d4af37]/40 mb-5">Job Type</p>
+              <p className="text-xs font-bold uppercase tracking-widest text-[#d4af37]/70 mb-5">Job Type</p>
               <div className="flex flex-wrap gap-2">
                 {['Full Time', 'Contract', 'Part Time', 'Internship'].map((type) => (
                   <button key={type}
                     onClick={() => { setJobType(type); setPage(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                    className="text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-[#d4af37] border border-white/5 hover:border-[#d4af37]/20 px-3 py-2 rounded-full transition-all">
+                    className={`text-xs font-semibold px-4 py-2 rounded-full border transition-all ${
+                      jobType === type
+                        ? 'bg-[#d4af37] text-black border-[#d4af37] font-bold'
+                        : 'text-white/60 hover:text-white border-white/10 hover:border-[#d4af37]/30 hover:bg-[#d4af37]/5'
+                    }`}>
                     {type}
                   </button>
                 ))}
               </div>
               <div className="mt-6">
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#d4af37]/40 mb-3">Apply Chance</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-[#d4af37]/70 mb-3">Apply Chance</p>
                 <div className="flex flex-wrap gap-2">
                   {['High Chance', 'Medium Chance', 'Standard'].map((score) => (
                     <button key={score}
                       onClick={() => { setApplyScore(score); setPage(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                      className="text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-[#d4af37] border border-white/5 hover:border-[#d4af37]/20 px-3 py-2 rounded-full transition-all">
+                      className={`text-xs font-semibold px-4 py-2 rounded-full border transition-all ${
+                        applyScore === score
+                          ? 'bg-[#d4af37] text-black border-[#d4af37] font-bold'
+                          : 'text-white/60 hover:text-white border-white/10 hover:border-[#d4af37]/30 hover:bg-[#d4af37]/5'
+                      }`}>
                       {score}
                     </button>
                   ))}
