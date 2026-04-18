@@ -430,10 +430,8 @@ export default function ApplyFirst() {
     }
 
     async function loadCount() {
-      const { count } = await supabase
-        .from('jobs')
-        .select('*', { count: 'exact', head: true });
-      if (count) setTotalCount(count);
+      const { data } = await supabase.rpc('get_jobs_count');
+      if (data) setTotalCount(Number(data));
     }
 
     load();
