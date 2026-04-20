@@ -431,7 +431,6 @@ export default function ApplyFirst() {
 
     async function loadCount() {
       try {
-        // Try RPC first (fast)
         const { data } = await supabase.rpc('get_jobs_count');
         if (data && Number(data) > 0) {
           setTotalCount(Number(data));
@@ -439,14 +438,12 @@ export default function ApplyFirst() {
         }
       } catch {}
       try {
-        // Fallback: get max id as proxy for scale
         const { data } = await supabase
           .from('jobs')
           .select('id')
           .order('id', { ascending: false })
           .limit(1);
         if (data && data[0]) {
-          // Use max ID as rough count indicator — not perfect but never times out
           setTotalCount(data[0].id);
         }
       } catch {}
@@ -513,6 +510,7 @@ export default function ApplyFirst() {
 
   return (
     <div className="min-h-screen bg-[#030303] text-white selection:bg-[#d4af37] selection:text-black">
+      {/* NAV */}
       <nav className="sticky top-0 z-50 border-b border-white/5 bg-[#030303]/95 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -538,6 +536,7 @@ export default function ApplyFirst() {
         </div>
       </nav>
 
+      {/* HERO */}
       <section className="relative overflow-hidden border-b border-white/5">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(212,175,55,0.07),transparent)]" />
         <div className="max-w-7xl mx-auto px-4 md:px-8 pt-16 pb-20 relative">
@@ -555,7 +554,7 @@ export default function ApplyFirst() {
             </h1>
             <p className="text-white/40 text-lg md:text-xl max-w-2xl leading-relaxed mb-10">
               Jobs pulled directly from Stripe, OpenAI, Netflix, Notion and 21,000+ company career pages.
-              <span className="text-white/60 font-bold"> Fresh listings updated automatically 24/7.</span>
+              <span className="text-white/60 font-bold"> 3M+ fresh listings updated automatically 24/7.</span>
             </p>
             <div className="flex flex-wrap gap-4">
               {[
@@ -573,6 +572,7 @@ export default function ApplyFirst() {
         </div>
       </section>
 
+      {/* SEARCH + FILTERS */}
       <div className="sticky top-16 z-40 bg-[#030303]/95 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-3">
           <div className="flex gap-3">
@@ -619,6 +619,7 @@ export default function ApplyFirst() {
         </div>
       </div>
 
+      {/* COUNT */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-5 flex items-center justify-between">
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20">
           {loading ? 'Loading...' : `${totalCount.toLocaleString()} ${activeFilters > 0 || search ? 'Filtered' : 'Verified'} Roles`}
@@ -628,6 +629,7 @@ export default function ApplyFirst() {
         )}
       </div>
 
+      {/* JOB LIST */}
       <main className="max-w-7xl mx-auto px-4 md:px-8 pb-20">
         {loading ? (
           <div className="space-y-3">
@@ -709,6 +711,7 @@ export default function ApplyFirst() {
         )}
       </main>
 
+      {/* BROWSE BY */}
       <section className="border-t border-white/5 bg-[#050505]">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-16">
           <div className="flex items-center justify-between mb-10">
@@ -725,7 +728,8 @@ export default function ApplyFirst() {
               <p className="text-xs font-bold uppercase tracking-widest text-[#d4af37]/70 mb-5">Category</p>
               <div className="flex flex-wrap gap-2">
                 {['Software', 'AI', 'Marketing', 'Finance', 'Design', 'Sales', 'Data', 'Product', 'Healthcare', 'HR', 'Legal', 'Operations', 'Education', 'Customer Success'].map((cat) => (
-                  <button key={cat} onClick={() => { setIndustry(cat); setPage(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  <button key={cat}
+                    onClick={() => { setIndustry(cat); setPage(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                     className={`text-xs font-semibold px-4 py-2 rounded-full border transition-all ${industry === cat ? 'bg-[#d4af37] text-black border-[#d4af37] font-bold' : 'text-white/60 hover:text-white border-white/10 hover:border-[#d4af37]/30 hover:bg-[#d4af37]/5'}`}>
                     {cat}
                   </button>
@@ -736,7 +740,8 @@ export default function ApplyFirst() {
               <p className="text-xs font-bold uppercase tracking-widest text-[#d4af37]/70 mb-5">Location</p>
               <div className="flex flex-wrap gap-2">
                 {['Remote', 'USA', 'UK', 'Europe', 'Australia', 'Singapore', 'Germany', 'Netherlands', 'UAE', 'Canada'].map((loc) => (
-                  <button key={loc} onClick={() => { setLocation(loc); setPage(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  <button key={loc}
+                    onClick={() => { setLocation(loc); setPage(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                     className={`text-xs font-semibold px-4 py-2 rounded-full border transition-all ${location === loc ? 'bg-[#d4af37] text-black border-[#d4af37] font-bold' : 'text-white/60 hover:text-white border-white/10 hover:border-[#d4af37]/30 hover:bg-[#d4af37]/5'}`}>
                     {loc}
                   </button>
@@ -747,7 +752,8 @@ export default function ApplyFirst() {
               <p className="text-xs font-bold uppercase tracking-widest text-[#d4af37]/70 mb-5">Job Type</p>
               <div className="flex flex-wrap gap-2">
                 {['Full Time', 'Contract', 'Part Time', 'Internship'].map((type) => (
-                  <button key={type} onClick={() => { setJobType(type); setPage(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                  <button key={type}
+                    onClick={() => { setJobType(type); setPage(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                     className={`text-xs font-semibold px-4 py-2 rounded-full border transition-all ${jobType === type ? 'bg-[#d4af37] text-black border-[#d4af37] font-bold' : 'text-white/60 hover:text-white border-white/10 hover:border-[#d4af37]/30 hover:bg-[#d4af37]/5'}`}>
                     {type}
                   </button>
@@ -757,7 +763,8 @@ export default function ApplyFirst() {
                 <p className="text-xs font-bold uppercase tracking-widest text-[#d4af37]/70 mb-3">Apply Chance</p>
                 <div className="flex flex-wrap gap-2">
                   {['High Chance', 'Medium Chance', 'Standard'].map((score) => (
-                    <button key={score} onClick={() => { setApplyScore(score); setPage(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                    <button key={score}
+                      onClick={() => { setApplyScore(score); setPage(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                       className={`text-xs font-semibold px-4 py-2 rounded-full border transition-all ${applyScore === score ? 'bg-[#d4af37] text-black border-[#d4af37] font-bold' : 'text-white/60 hover:text-white border-white/10 hover:border-[#d4af37]/30 hover:bg-[#d4af37]/5'}`}>
                       {score}
                     </button>
@@ -769,6 +776,7 @@ export default function ApplyFirst() {
         </div>
       </section>
 
+      {/* GET ALERTS */}
       <section id="get-alerts" className="border-t border-white/5 bg-[#080808]">
         <div className="max-w-3xl mx-auto px-4 md:px-8 py-24 text-center">
           <div className="inline-flex items-center gap-2 bg-[#d4af37]/10 border border-[#d4af37]/20 px-5 py-2.5 rounded-full mb-10">
@@ -800,12 +808,13 @@ export default function ApplyFirst() {
         </div>
       </section>
 
+      {/* STATS */}
       <section className="border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
             { value: `${totalCount.toLocaleString()}+`, label: 'Verified Roles', color: 'text-[#d4af37]' },
             { value: '24/7', label: 'Update Cycle', color: 'text-emerald-400' },
-            { value: '21k+', label: 'Direct Sources', color: 'text-white' },
+            { value: '21k+', label: 'Company Sources', color: 'text-white' },
             { value: '30d', label: 'Max Job Age', color: 'text-[#d4af37]' },
           ].map((stat) => (
             <div key={stat.label}>
@@ -816,6 +825,7 @@ export default function ApplyFirst() {
         </div>
       </section>
 
+      {/* FOOTER */}
       <footer className="border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -825,7 +835,7 @@ export default function ApplyFirst() {
             <span className="text-white/30 text-xs font-black uppercase tracking-widest">ApplyFirst — Job Intelligence</span>
           </div>
           <div className="flex flex-wrap justify-center gap-4 text-[10px] font-black uppercase tracking-widest text-white/20">
-            <span>Jobs from public career pages</span>
+            <span>3M+ Jobs from public career pages</span>
             <span>·</span>
             <span>Updated Daily</span>
             <span>·</span>
@@ -840,6 +850,7 @@ export default function ApplyFirst() {
         </div>
       </footer>
 
+      {/* QUICK APPLY MODAL */}
       {selectedJob && (
         <div className="fixed inset-0 bg-black/95 backdrop-blur-2xl flex items-center justify-center z-[100] p-6"
           onClick={(e) => { if (e.target === e.currentTarget) setSelectedJob(null); }}>
