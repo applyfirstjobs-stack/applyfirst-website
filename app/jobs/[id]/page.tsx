@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import ApplySection from './ApplySection';
 
 const supabase = createClient(
@@ -76,7 +76,7 @@ export async function generateMetadata({ params }: Props) {
   if (!job) {
     return {
       title: 'ApplyFirst — Fresh Jobs',
-      description: 'Browse 2M+ fresh jobs on ApplyFirst.',
+      description: 'Browse 3M+ fresh jobs on ApplyFirst.',
     };
   }
 
@@ -117,7 +117,7 @@ function Footer() {
           <span className="text-white/30 text-xs font-black uppercase tracking-widest">ApplyFirst — Job Intelligence</span>
         </a>
         <div className="flex flex-wrap justify-center gap-4 text-[10px] font-black uppercase tracking-widest text-white/20">
-          <span>Jobs from public career pages</span>
+          <span>3M+ Jobs from public career pages</span>
           <span>·</span>
           <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>
           <span>·</span>
@@ -164,10 +164,9 @@ export default async function JobPage({ params }: Props) {
     .eq('id', params.id)
     .single();
 
-  // Not found → redirect to homepage, never 404
-  if (!job) redirect('/');
+  // Not found → proper 404, never redirect
+  if (!job) notFound();
 
-  // Related jobs — max 4 days old, valid apply_url, same industry
   const cutoff = new Date(Date.now() - 96 * 60 * 60 * 1000).toISOString();
   const { data: relatedRaw } = await supabase
     .from('jobs')
@@ -184,7 +183,6 @@ export default async function JobPage({ params }: Props) {
   const expired = isOlderThan30Days(job.date_posted || job.created_at);
   const s = getScoreStyle(job.apply_score);
 
-  // EXPIRED JOB — show banner + related fresh jobs
   if (expired) {
     return (
       <div className="min-h-screen bg-[#030303] text-white">
@@ -208,7 +206,6 @@ export default async function JobPage({ params }: Props) {
               Browse 3M+ Fresh Jobs →
             </a>
           </div>
-
           {relatedJobs.length > 0 && (
             <div>
               <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 mb-6">
@@ -231,14 +228,11 @@ export default async function JobPage({ params }: Props) {
     );
   }
 
-  // FRESH JOB — full detail page
   return (
     <div className="min-h-screen bg-[#030303] text-white selection:bg-[#d4af37] selection:text-black">
       <Nav />
       <div className="max-w-6xl mx-auto px-4 md:px-8 py-10 md:py-16">
         <div className="grid md:grid-cols-3 gap-8 lg:gap-12">
-
-          {/* LEFT COLUMN */}
           <div className="md:col-span-2 space-y-6">
             <div className="bg-[#0c0c0c] border border-white/5 rounded-3xl p-8 md:p-10">
               <div className="flex items-start gap-6 mb-8">
@@ -353,7 +347,6 @@ export default async function JobPage({ params }: Props) {
             )}
           </div>
 
-          {/* RIGHT COLUMN */}
           <div className="space-y-5">
             <ApplySection job={job} />
             <div className="bg-[#d4af37]/5 border border-[#d4af37]/15 rounded-3xl p-8 text-center">
