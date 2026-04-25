@@ -86,18 +86,16 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     document.title = `${job.job_title} at ${job.company_name} — ApplyFirst`;
-    window.history.pushState({}, '', `/jobs/${job.id}`);
+    if (job.id) window.history.pushState({}, '', `/jobs/${job.id}`);
     const handlePopState = () => { onBack(); };
     window.addEventListener('popstate', handlePopState);
 
     async function loadRelated() {
-      const cutoff = new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString();
       const { data } = await supabase
         .from('jobs')
         .select('id,job_title,company_name,industry,apply_score,date_posted,created_at,apply_url,location')
         .eq('industry', job.industry)
         .neq('id', job.id)
-        .gte('created_at', cutoff)
         .not('apply_url', 'is', null)
         .neq('apply_url', '')
         .order('created_at', { ascending: false })
@@ -264,7 +262,7 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
                   {relatedJobs.map((r) => {
                     const rs = getScoreStyle(r.apply_score);
                     return (
-                      <div key={r.id} onClick={() => setViewJob(r)}
+                      <div key={r.id} onClick={() => r.id && setViewJob(r)}
                         className="flex items-center gap-4 bg-[#0c0c0c] border border-white/5 hover:border-[#d4af37]/15 rounded-2xl p-5 transition-all group cursor-pointer">
                         <div className="w-10 h-10 bg-[#d4af37]/5 border border-[#d4af37]/10 rounded-xl flex items-center justify-center shrink-0">
                           <span className="text-[#d4af37] font-black text-sm uppercase">{r.company_name?.[0] || 'A'}</span>
@@ -414,6 +412,7 @@ export default function ApplyFirst() {
       let q = supabase
         .from('jobs')
         .select('*')
+        .not('id', 'is', null)
         .order('created_at', { ascending: false });
 
       if (search) q = q.or(`job_title.ilike.%${search}%,company_name.ilike.%${search}%`);
@@ -423,18 +422,16 @@ export default function ApplyFirst() {
       if (location !== 'All Locations') q = q.ilike('location', `%${location}%`);
       q = q.range((page - 1) * PER_PAGE, page * PER_PAGE - 1);
       const { data } = await q;
-      setJobs(data || []);
+      setJobs((data || []).filter(j => j.id));
       setLoading(false);
     }
 
     async function loadCount() {
       try {
-        const { data } = await supabase.rpc('get_jobs_count');
-        if (data && Number(data) > 0) { setTotalCount(Number(data)); return; }
-      } catch {}
-      try {
-        const { data } = await supabase.from('jobs').select('id').order('id', { ascending: false }).limit(1);
-        if (data && data[0]) setTotalCount(data[0].id);
+        const { count } = await supabase
+          .from('jobs')
+          .select('*', { count: 'exact', head: true });
+        if (count && count > 0) { setTotalCount(count); return; }
       } catch {}
     }
 
@@ -525,7 +522,7 @@ export default function ApplyFirst() {
             </h1>
             <p className="text-white/40 text-lg md:text-xl max-w-2xl leading-relaxed mb-10">
               Jobs pulled directly from Stripe, OpenAI, Netflix, Notion and 21,000+ company career pages.
-              <span className="text-white/60 font-bold"> 3M+ fresh listings updated automatically 24/7.</span>
+              <span className="text-white/60 font-bold"> Fresh listings updated automatically 24/7.</span>
             </p>
             <div className="flex flex-wrap gap-4">
               {[
@@ -619,7 +616,7 @@ export default function ApplyFirst() {
               return (
                 <div key={job.id}
                   className="group bg-[#0c0c0c] hover:bg-[#111] border border-white/5 hover:border-[#d4af37]/15 rounded-2xl px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center gap-5 transition-all duration-200 cursor-pointer"
-                  onClick={() => setJobDetailView(job)}>
+                  onClick={() => job.id && setJobDetailView(job)}>
                   <div className="w-12 h-12 bg-[#d4af37]/5 border border-[#d4af37]/10 rounded-xl flex items-center justify-center shrink-0 group-hover:border-[#d4af37]/25 transition-all">
                     <span className="text-[#d4af37] font-black text-lg uppercase">{job.company_name?.[0] || 'A'}</span>
                   </div>
@@ -650,7 +647,7 @@ export default function ApplyFirst() {
                         Apply
                       </button>
                     ) : (
-                      <button onClick={(e) => { e.stopPropagation(); setJobDetailView(job); }}
+                      <button onClick={(e) => { e.stopPropagation(); if (job.id) setJobDetailView(job); }}
                         className="bg-white/10 text-white/40 px-6 py-2.5 rounded-full font-black text-[10px] uppercase tracking-[0.2em] hover:bg-white/20 transition-all">
                         View
                       </button>
@@ -799,7 +796,7 @@ export default function ApplyFirst() {
             <span className="text-white/30 text-xs font-black uppercase tracking-widest">ApplyFirst — Job Intelligence</span>
           </div>
           <div className="flex flex-wrap justify-center gap-4 text-[10px] font-black uppercase tracking-widest text-white/20">
-            <span>3M+ Jobs from public career pages</span>
+            <span>Jobs from public career pages</span>
             <span>·</span>
             <span>Updated Daily</span>
             <span>·</span>
