@@ -1,30 +1,61 @@
+// lib/seo-slugs.ts
 export const CATEGORIES = [
-  { slug: 'technology-jobs', label: 'Technology', industry: 'Technology' },
-  { slug: 'marketing-jobs', label: 'Marketing', industry: 'Marketing' },
-  { slug: 'finance-jobs', label: 'Finance', industry: 'Finance' },
-  { slug: 'design-jobs', label: 'Design', industry: 'Design' },
-  { slug: 'sales-jobs', label: 'Sales', industry: 'Sales' },
-  { slug: 'healthcare-jobs', label: 'Healthcare', industry: 'Healthcare' },
-  { slug: 'hr-jobs', label: 'HR', industry: 'HR' },
-  { slug: 'legal-jobs', label: 'Legal', industry: 'Legal' },
-  { slug: 'data-jobs', label: 'Data', industry: 'Data' },
-  { slug: 'ai-jobs', label: 'AI', industry: 'AI' },
-  { slug: 'product-jobs', label: 'Product', industry: 'Product' },
-  { slug: 'operations-jobs', label: 'Operations', industry: 'Operations' },
-  { slug: 'customer-success-jobs', label: 'Customer Success', industry: 'Customer Success' },
-  { slug: 'education-jobs', label: 'Education', industry: 'Education' },
-  { slug: 'logistics-jobs', label: 'Logistics', industry: 'Logistics' },
+  { slug: 'software-engineer', label: 'Software Engineer', industry: 'Technology' },
+  { slug: 'ai-machine-learning', label: 'AI & Machine Learning', industry: 'AI' },
+  { slug: 'marketing', label: 'Marketing', industry: 'Marketing' },
+  { slug: 'finance', label: 'Finance', industry: 'Finance' },
+  { slug: 'design', label: 'Design', industry: 'Design' },
+  { slug: 'sales', label: 'Sales', industry: 'Sales' },
+  { slug: 'data-science', label: 'Data Science', industry: 'Data' },
+  { slug: 'product-manager', label: 'Product Manager', industry: 'Product' },
+  { slug: 'healthcare', label: 'Healthcare', industry: 'Healthcare' },
+  { slug: 'hr-recruiting', label: 'HR & Recruiting', industry: 'HR' },
+  { slug: 'legal', label: 'Legal', industry: 'Legal' },
+  { slug: 'operations', label: 'Operations', industry: 'Operations' },
+  { slug: 'customer-success', label: 'Customer Success', industry: 'Customer Success' },
+  { slug: 'education', label: 'Education', industry: 'Education' },
+  { slug: 'devops', label: 'DevOps & Cloud', industry: 'Technology' },
+  { slug: 'cybersecurity', label: 'Cybersecurity', industry: 'Technology' },
+  { slug: 'backend-developer', label: 'Backend Developer', industry: 'Technology' },
+  { slug: 'frontend-developer', label: 'Frontend Developer', industry: 'Technology' },
+  { slug: 'fullstack-developer', label: 'Full Stack Developer', industry: 'Technology' },
+  { slug: 'mobile-developer', label: 'Mobile Developer', industry: 'Technology' },
+  { slug: 'data-engineer', label: 'Data Engineer', industry: 'Data' },
+  { slug: 'data-analyst', label: 'Data Analyst', industry: 'Data' },
+  { slug: 'business-intelligence', label: 'Business Intelligence', industry: 'Data' },
+  { slug: 'growth-marketing', label: 'Growth Marketing', industry: 'Marketing' },
+  { slug: 'content-marketing', label: 'Content Marketing', industry: 'Marketing' },
+  { slug: 'seo-specialist', label: 'SEO Specialist', industry: 'Marketing' },
+  { slug: 'account-executive', label: 'Account Executive', industry: 'Sales' },
+  { slug: 'business-development', label: 'Business Development', industry: 'Sales' },
+  { slug: 'ux-designer', label: 'UX Designer', industry: 'Design' },
+  { slug: 'graphic-designer', label: 'Graphic Designer', industry: 'Design' },
+  { slug: 'accounting', label: 'Accounting', industry: 'Finance' },
+  { slug: 'investment-banking', label: 'Investment Banking', industry: 'Finance' },
+  { slug: 'project-manager', label: 'Project Manager', industry: 'Operations' },
+  { slug: 'supply-chain', label: 'Supply Chain', industry: 'Logistics' },
+  { slug: 'nurse', label: 'Nursing', industry: 'Healthcare' },
+  { slug: 'software-qa', label: 'Software QA', industry: 'Technology' },
 ];
 
 export const LOCATIONS = [
-  { slug: 'remote-jobs', label: 'Remote', location: 'Remote' },
-  { slug: 'new-york-jobs', label: 'New York', location: 'New York' },
-  { slug: 'san-francisco-jobs', label: 'San Francisco', location: 'San Francisco' },
-  { slug: 'london-jobs', label: 'London', location: 'London' },
-  { slug: 'austin-jobs', label: 'Austin', location: 'Austin' },
-  { slug: 'chicago-jobs', label: 'Chicago', location: 'Chicago' },
-  { slug: 'boston-jobs', label: 'Boston', location: 'Boston' },
-  { slug: 'seattle-jobs', label: 'Seattle', location: 'Seattle' },
+  { slug: 'remote', label: 'Remote', location: 'Remote' },
+  { slug: 'usa', label: 'USA', location: 'USA' },
+  { slug: 'uk', label: 'UK', location: 'UK' },
+  { slug: 'europe', label: 'Europe', location: 'Europe' },
+  { slug: 'australia', label: 'Australia', location: 'Australia' },
+  { slug: 'canada', label: 'Canada', location: 'Canada' },
+  { slug: 'singapore', label: 'Singapore', location: 'Singapore' },
+  { slug: 'germany', label: 'Germany', location: 'Germany' },
+  { slug: 'netherlands', label: 'Netherlands', location: 'Netherlands' },
+  { slug: 'uae', label: 'UAE', location: 'UAE' },
+];
+
+export const JOB_TYPES = [
+  { slug: 'full-time', label: 'Full Time', jobType: 'Full Time' },
+  { slug: 'contract', label: 'Contract', jobType: 'Contract' },
+  { slug: 'part-time', label: 'Part Time', jobType: 'Part Time' },
+  { slug: 'internship', label: 'Internship', jobType: 'Internship' },
 ];
 
 export const ATS_SOURCES = [
@@ -35,56 +66,85 @@ export const ATS_SOURCES = [
   { slug: 'pinpoint', label: 'Pinpoint' },
 ];
 
-export type ParsedSlug = {
-  title: string;
-  description: string;
+export function getAllSlugs(): string[] {
+  const slugs: string[] = [];
+  CATEGORIES.forEach(c => slugs.push(c.slug));
+  LOCATIONS.forEach(l => slugs.push(l.slug));
+  JOB_TYPES.forEach(j => slugs.push(j.slug));
+  CATEGORIES.forEach(c => {
+    LOCATIONS.forEach(l => slugs.push(`${c.slug}-${l.slug}`));
+  });
+  CATEGORIES.forEach(c => {
+    JOB_TYPES.forEach(j => slugs.push(`${c.slug}-${j.slug}`));
+  });
+  return slugs;
+}
+
+export function parseSlug(slug: string): {
   industry?: string;
   location?: string;
   jobType?: string;
   source?: string;
-};
-
-export function parseSlug(slug: string): ParsedSlug | null {
-  // Check categories
+  title: string;
+  description: string;
+} | null {
+  // Category + location combo
+  for (const cat of CATEGORIES) {
+    for (const loc of LOCATIONS) {
+      if (slug === `${cat.slug}-${loc.slug}`) {
+        return {
+          industry: cat.industry,
+          location: loc.location,
+          title: `${cat.label} Jobs in ${loc.label}`,
+          description: `Browse ${cat.label} jobs in ${loc.label}. Fresh listings updated daily from 21,000+ company career pages.`,
+        };
+      }
+    }
+  }
+  // Category + job type combo
+  for (const cat of CATEGORIES) {
+    for (const jt of JOB_TYPES) {
+      if (slug === `${cat.slug}-${jt.slug}`) {
+        return {
+          industry: cat.industry,
+          jobType: jt.jobType,
+          title: `${jt.label} ${cat.label} Jobs`,
+          description: `Browse ${jt.label} ${cat.label} jobs. Fresh listings updated daily from 21,000+ company career pages.`,
+        };
+      }
+    }
+  }
+  // Category only
   const cat = CATEGORIES.find(c => c.slug === slug);
   if (cat) return {
-    title: `${cat.label} Jobs`,
-    description: `Browse the latest remote and on-site ${cat.label} jobs from top companies worldwide.`,
     industry: cat.industry,
+    title: `${cat.label} Jobs`,
+    description: `Browse ${cat.label} jobs. Fresh listings updated daily from 21,000+ company career pages.`,
   };
 
-  // Check locations
+  // Location only
   const loc = LOCATIONS.find(l => l.slug === slug);
   if (loc) return {
-    title: `${loc.label} Jobs`,
-    description: `Find the best jobs in ${loc.label}. Browse hundreds of open roles from top companies.`,
     location: loc.location,
+    title: `Remote Jobs in ${loc.label}`,
+    description: `Browse remote jobs in ${loc.label}. Fresh listings updated daily from 21,000+ company career pages.`,
   };
 
-  // Check ATS sources
+  // Job type only
+  const jt = JOB_TYPES.find(j => j.slug === slug);
+  if (jt) return {
+    jobType: jt.jobType,
+    title: `${jt.label} Jobs`,
+    description: `Browse ${jt.label} jobs. Fresh listings updated daily from 21,000+ company career pages.`,
+  };
+
+  // ATS source
   const ats = ATS_SOURCES.find(a => `${a.slug}-jobs` === slug);
   if (ats) return {
+    source: ats.label,
     title: `${ats.label} Jobs`,
     description: `Browse jobs posted via ${ats.label} from thousands of companies worldwide.`,
-    source: ats.label,
   };
 
-  // Job type slugs
-  if (slug === 'remote-jobs') return { title: 'Remote Jobs', description: 'Browse remote jobs worldwide.', jobType: 'Full Time', location: 'Remote' };
-  if (slug === 'part-time-jobs') return { title: 'Part Time Jobs', description: 'Browse part-time jobs worldwide.', jobType: 'Part Time' };
-  if (slug === 'contract-jobs') return { title: 'Contract Jobs', description: 'Browse contract jobs worldwide.', jobType: 'Contract' };
-  if (slug === 'internship-jobs') return { title: 'Internship Jobs', description: 'Browse internship opportunities worldwide.', jobType: 'Internship' };
-
   return null;
-}
-
-export function getAllSlugs(): string[] {
-  return [
-    ...CATEGORIES.map(c => c.slug),
-    ...LOCATIONS.map(l => l.slug),
-    ...ATS_SOURCES.map(a => `${a.slug}-jobs`),
-    'part-time-jobs',
-    'contract-jobs',
-    'internship-jobs',
-  ];
 }
