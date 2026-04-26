@@ -23,7 +23,6 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function SalaryDetailPage({ params }: { params: { slug: string } }) {
-  // Get title salary data
   const { data: titleData } = await supabase
     .from('salaries_by_title')
     .select('*')
@@ -32,7 +31,6 @@ export default async function SalaryDetailPage({ params }: { params: { slug: str
 
   if (!titleData) return notFound();
 
-  // Get by state
   const { data: stateData } = await supabase
     .from('salaries_by_title_state')
     .select('state, avg_salary, min_salary, max_salary, sample_size')
@@ -40,7 +38,6 @@ export default async function SalaryDetailPage({ params }: { params: { slug: str
     .order('avg_salary', { ascending: false })
     .limit(15);
 
-  // Get by employer
   const { data: employerData } = await supabase
     .from('salaries_by_employer')
     .select('employer_name, avg_salary, min_salary, max_salary, sample_size')
@@ -48,11 +45,13 @@ export default async function SalaryDetailPage({ params }: { params: { slug: str
     .order('avg_salary', { ascending: false })
     .limit(15);
 
-  // Get related jobs
+  // fetch apply_url so we can link directly to company career page
   const { data: relatedJobs } = await supabase
     .from('jobs')
-    .select('id, job_title, company_name, location, job_type, apply_score, date_posted')
+    .select('id, job_title, company_name, location, apply_score, date_posted, apply_url')
     .ilike('job_title', `%${titleData.job_title.split(' ')[0]}%`)
+    .not('apply_url', 'is', null)
+    .neq('apply_url', '')
     .order('created_at', { ascending: false })
     .limit(10);
 
@@ -174,7 +173,7 @@ export default async function SalaryDetailPage({ params }: { params: { slug: str
         )}
       </main>
 
-      {/* RELATED JOBS */}
+      {/* RELATED JOBS — links go directly to company apply URL, no 404 */}
       {relatedJobs && relatedJobs.length > 0 && (
         <section className="border-t border-white/5 bg-[#050505]">
           <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
@@ -183,7 +182,11 @@ export default async function SalaryDetailPage({ params }: { params: { slug: str
             </h2>
             <div className="space-y-2">
               {relatedJobs.map((job) => (
-                <Link key={job.id} href={`/jobs/${job.id}`}
+                <a
+                  key={job.id}
+                  href={job.apply_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="group block bg-[#0c0c0c] hover:bg-[#111] border border-white/5 hover:border-[#d4af37]/15 rounded-2xl px-6 py-4 transition-all duration-200">
                   <div className="flex items-center gap-4">
                     <div className="flex-1 min-w-0">
@@ -195,9 +198,9 @@ export default async function SalaryDetailPage({ params }: { params: { slug: str
                         {job.location && <><span>·</span><span>{job.location}</span></>}
                       </div>
                     </div>
-                    <span className="text-white/20 group-hover:text-[#d4af37] transition-colors">→</span>
+                    <span className="text-white/20 group-hover:text-[#d4af37] transition-colors text-xs font-black uppercase tracking-widest shrink-0">Apply →</span>
                   </div>
-                </Link>
+                </a>
               ))}
             </div>
           </div>
