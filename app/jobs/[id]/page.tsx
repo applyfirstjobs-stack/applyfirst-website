@@ -132,31 +132,6 @@ function Footer() {
   );
 }
 
-function RelatedJobCard({ r }: { r: any }) {
-  const rs = getScoreStyle(r.apply_score);
-  return (
-    <a href={`/jobs/${r.id}`}
-      className="flex items-center gap-4 bg-[#0c0c0c] border border-white/5 hover:border-[#d4af37]/15 rounded-2xl p-5 transition-all group">
-      <div className="w-10 h-10 bg-[#d4af37]/5 border border-[#d4af37]/10 rounded-xl flex items-center justify-center shrink-0">
-        <span className="text-[#d4af37] font-black text-sm uppercase">{r.company_name?.[0] || 'A'}</span>
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-bold text-white group-hover:text-[#d4af37] transition-colors truncate">{cleanText(r.job_title)}</p>
-        <p className="text-[10px] font-black uppercase tracking-widest text-white/25">
-          {cleanText(r.company_name)}{r.location ? ` · 📍 ${r.location}` : ''} · {getTimeAgo(r.date_posted || r.created_at)}
-        </p>
-      </div>
-      {r.apply_score && (
-        <div className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest ${rs.bg} ${rs.border} ${rs.text}`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${rs.dot}`} />
-          {r.apply_score === 'High Chance' ? 'Hot' : 'Active'}
-        </div>
-      )}
-      <span className="text-white/20 group-hover:text-[#d4af37] transition-colors">→</span>
-    </a>
-  );
-}
-
 export default async function JobPage({ params }: Props) {
   const { data: job } = await supabase
     .from('jobs')
@@ -166,13 +141,11 @@ export default async function JobPage({ params }: Props) {
 
   if (!job) notFound();
 
-  const cutoff = new Date(Date.now() - 96 * 60 * 60 * 1000).toISOString();
   const { data: relatedRaw } = await supabase
     .from('jobs')
     .select('id, job_title, company_name, location, apply_score, date_posted, created_at, industry, apply_url')
     .eq('industry', job.industry || 'Technology')
     .neq('id', params.id)
-    .gte('created_at', cutoff)
     .not('apply_url', 'is', null)
     .neq('apply_url', '')
     .order('created_at', { ascending: false })
@@ -197,11 +170,8 @@ export default async function JobPage({ params }: Props) {
               <span className="text-white/60 font-bold">{cleanText(job.company_name)}</span> was posted
               over 30 days ago and may no longer be available.
             </p>
-            <p className="text-white/25 mb-8 text-sm max-w-md mx-auto">
-              Browse fresh listings below — updated daily from 21,000+ company career pages.
-            </p>
             <a href="/"
-              className="inline-block bg-[#d4af37] text-black px-8 py-4 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-white transition-all">
+              className="inline-block bg-[#d4af37] text-black px-8 py-4 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-white transition-all mt-6">
               Browse Fresh Jobs →
             </a>
           </div>
@@ -211,13 +181,24 @@ export default async function JobPage({ params }: Props) {
                 🔥 Fresh {job.industry} Jobs
               </h2>
               <div className="space-y-3">
-                {relatedJobs.map((r) => <RelatedJobCard key={r.id} r={r} />)}
-              </div>
-              <div className="mt-8 text-center">
-                <a href="/"
-                  className="inline-block border border-white/10 text-white/30 px-8 py-3 rounded-full font-black text-[10px] uppercase tracking-widest hover:border-[#d4af37]/20 hover:text-white transition-all">
-                  Browse All Jobs →
-                </a>
+                {relatedJobs.map((r) => {
+                  const rs = getScoreStyle(r.apply_score);
+                  return (
+                    <a key={r.id} href={`/jobs/${r.id}`}
+                      className="flex items-center gap-4 bg-[#0c0c0c] border border-white/5 hover:border-[#d4af37]/15 rounded-2xl p-5 transition-all group">
+                      <div className="w-10 h-10 bg-[#d4af37]/5 border border-[#d4af37]/10 rounded-xl flex items-center justify-center shrink-0">
+                        <span className="text-[#d4af37] font-black text-sm uppercase">{r.company_name?.[0] || 'A'}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-white group-hover:text-[#d4af37] transition-colors truncate">{cleanText(r.job_title)}</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-white/25">
+                          {cleanText(r.company_name)}{r.location ? ` · 📍 ${r.location}` : ''} · {getTimeAgo(r.date_posted || r.created_at)}
+                        </p>
+                      </div>
+                      <span className="text-white/20 group-hover:text-[#d4af37] transition-colors">→</span>
+                    </a>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -294,27 +275,6 @@ export default async function JobPage({ params }: Props) {
               </div>
             )}
 
-            {(job.funding_amount || job.funding_round) && (
-              <div className="bg-[#d4af37]/5 border border-[#d4af37]/15 rounded-3xl p-8">
-                <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-[#d4af37]/40 mb-6">💰 Funding Intelligence</h2>
-                <div className="flex flex-wrap gap-8 mb-4">
-                  {job.funding_amount && (
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-2">Amount Raised</p>
-                      <p className="text-4xl font-black text-[#d4af37]">{job.funding_amount}</p>
-                    </div>
-                  )}
-                  {job.funding_round && (
-                    <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-2">Stage</p>
-                      <p className="text-4xl font-black text-white">{job.funding_round}</p>
-                    </div>
-                  )}
-                </div>
-                <p className="text-white/25 text-xs">Funded companies hire fast. Apply while positions are fresh.</p>
-              </div>
-            )}
-
             <div className="bg-[#d4af37]/5 border border-[#d4af37]/15 rounded-3xl p-8">
               <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-[#d4af37]/50 mb-6">⚡ Why Apply Now</h2>
               <div className="space-y-4">
@@ -340,7 +300,30 @@ export default async function JobPage({ params }: Props) {
                   🔥 Fresh {job.industry} Roles
                 </h2>
                 <div className="space-y-2">
-                  {relatedJobs.map((r) => <RelatedJobCard key={r.id} r={r} />)}
+                  {relatedJobs.map((r) => {
+                    const rs = getScoreStyle(r.apply_score);
+                    return (
+                      <a key={r.id} href={`/jobs/${r.id}`}
+                        className="flex items-center gap-4 bg-[#0c0c0c] border border-white/5 hover:border-[#d4af37]/15 rounded-2xl p-5 transition-all group">
+                        <div className="w-10 h-10 bg-[#d4af37]/5 border border-[#d4af37]/10 rounded-xl flex items-center justify-center shrink-0">
+                          <span className="text-[#d4af37] font-black text-sm uppercase">{r.company_name?.[0] || 'A'}</span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-bold text-white group-hover:text-[#d4af37] transition-colors truncate">{cleanText(r.job_title)}</p>
+                          <p className="text-[10px] font-black uppercase tracking-widest text-white/25">
+                            {cleanText(r.company_name)}{r.location ? ` · 📍 ${r.location}` : ''} · {getTimeAgo(r.date_posted || r.created_at)}
+                          </p>
+                        </div>
+                        {r.apply_score && (
+                          <div className={`hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[9px] font-black uppercase tracking-widest ${rs.bg} ${rs.border} ${rs.text}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${rs.dot}`} />
+                            {r.apply_score === 'High Chance' ? 'Hot' : 'Active'}
+                          </div>
+                        )}
+                        <span className="text-white/20 group-hover:text-[#d4af37] transition-colors">→</span>
+                      </a>
+                    );
+                  })}
                 </div>
               </div>
             )}
