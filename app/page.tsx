@@ -430,8 +430,8 @@ export default function ApplyFirst() {
       try {
         const { count } = await supabase
           .from('jobs')
-          .select('*', { count: 'exact', head: true });
-        if (count && count > 0) { setTotalCount(count); return; }
+          .select('id', { count: 'exact', head: true });
+        if (count !== null) { setTotalCount(count); return; }
       } catch {}
     }
 
