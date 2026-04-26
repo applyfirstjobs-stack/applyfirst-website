@@ -98,7 +98,7 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
         .neq('id', job.id)
         .not('apply_url', 'is', null)
         .neq('apply_url', '')
-        .order('created_at', { ascending: false, nullsFirst: false })
+        .order('created_at', { ascending: false })
         .limit(12);
       const validJobs = (data || []).filter(r => isValidUrl(r.apply_url));
       setRelatedJobs(validJobs.slice(0, 6));
@@ -398,7 +398,7 @@ export default function ApplyFirst() {
         .from('jobs')
         .select('id,job_title,company_name,location,job_type,apply_score,date_posted,created_at,industry,apply_url,salary,source,description,funding_amount,funding_round')
         .not('id', 'is', null)
-        .order('created_at', { ascending: false, nullsFirst: false });
+        .order('created_at', { ascending: false });
 
       if (search) q = q.or(`job_title.ilike.%${search}%,company_name.ilike.%${search}%`);
       if (industry !== 'All Industries') q = q.eq('industry', industry);
