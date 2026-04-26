@@ -98,7 +98,7 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
         .neq('id', job.id)
         .not('apply_url', 'is', null)
         .neq('apply_url', '')
-        .order('created_at', { ascending: false })
+        .order('id', { ascending: false })
         .limit(12);
       const validJobs = (data || []).filter(r => isValidUrl(r.apply_url));
       setRelatedJobs(validJobs.slice(0, 6));
@@ -300,14 +300,8 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
               {!hasUrl ? (
                 <div className="space-y-4">
                   <p className="text-white/25 text-xs mb-4 leading-relaxed">
-                    The direct application link for this role is not available. Search for <strong className="text-white/40">{cleanText(job.job_title)}</strong> on {cleanText(job.company_name)}'s careers page.
+                    Direct link unavailable. Search for <strong className="text-white/40">{cleanText(job.job_title)}</strong> on {cleanText(job.company_name)}&apos;s careers page.
                   </p>
-                  {job.company_website && (
-                    <a href={job.company_website} target="_blank" rel="noopener noreferrer"
-                      className="block w-full bg-[#d4af37] text-black py-4 rounded-2xl font-black uppercase tracking-[0.3em] text-[10px] hover:bg-white transition-all text-center">
-                      Visit Company Website →
-                    </a>
-                  )}
                   <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 text-center">
                     <p className="text-amber-400 text-[10px] font-black uppercase tracking-widest">⚠ Direct link unavailable</p>
                   </div>
@@ -315,7 +309,7 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
               ) : !applied ? (
                 <form onSubmit={handleApply} className="space-y-3">
                   <p className="text-white/25 text-xs mb-6 leading-relaxed">
-                    Enter your email and we'll open the official career page at {cleanText(job.company_name)}.
+                    Enter your email and we&apos;ll open the official career page at {cleanText(job.company_name)}.
                   </p>
                   <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
@@ -337,7 +331,7 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
               )}
               {noUrlError && (
                 <div className="mt-4 bg-red-500/10 border border-red-500/20 rounded-2xl p-3 text-center">
-                  <p className="text-red-400 text-[10px] font-black uppercase tracking-widest">No application link available for this role</p>
+                  <p className="text-red-400 text-[10px] font-black uppercase tracking-widest">No application link available</p>
                 </div>
               )}
               <div className="mt-6 pt-6 border-t border-white/5 space-y-3">
@@ -358,23 +352,14 @@ function JobDetail({ job, onBack }: { job: any; onBack: () => void }) {
                 {copied ? '✅ Link Copied!' : '🔗 Copy Job Link'}
               </button>
             </div>
-            <div className="bg-[#d4af37]/5 border border-[#d4af37]/15 rounded-3xl p-8 text-center">
-              <p className="text-2xl mb-4">📬</p>
-              <h4 className="text-xl font-black text-white uppercase tracking-tight mb-2">Get Weekly Alerts</h4>
-              <p className="text-white/25 text-xs mb-5">Fresh {job.industry} roles every Monday</p>
-              <button onClick={onBack}
-                className="inline-block bg-[#d4af37]/10 border border-[#d4af37]/20 text-[#d4af37] px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-[#d4af37]/20 transition-all">
-                Browse All Jobs
-              </button>
-            </div>
           </div>
         </div>
       </div>
 
       <footer className="border-t border-white/5 mt-10">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 flex items-center justify-between">
-          <button onClick={onBack} className="flex items-center gap-2 hover:opacity-70 transition-opacity">
-            <div className="w-6 h-6 bg-[#d4af37] rounded-lg flex items-center justify-center">
+        <div className="max-w-6xl mx-auto px-4 md:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
+          <button onClick={onBack} className="flex items-center gap-3 hover:opacity-70 transition-opacity">
+            <div className="w-7 h-7 bg-[#d4af37] rounded-lg flex items-center justify-center">
               <span className="text-black font-black text-xs italic">A</span>
             </div>
             <span className="text-white/20 text-xs font-black uppercase tracking-widest">ApplyFirst</span>
@@ -409,7 +394,7 @@ export default function ApplyFirst() {
   useEffect(() => {
     async function load() {
       setLoading(true);
-     let q = supabase
+      let q = supabase
         .from('jobs')
         .select('id,job_title,company_name,location,job_type,apply_score,date_posted,created_at,industry,apply_url,salary,source,description,funding_amount,funding_round')
         .not('id', 'is', null)
@@ -643,14 +628,11 @@ export default function ApplyFirst() {
                     )}
                     {jobHasUrl ? (
                       <button onClick={(e) => { e.stopPropagation(); setSelectedJob(job); }}
-                        className="bg-white text-black px-6 py-2.5 rounded-full font-black text-[10px] uppercase tracking-[0.2em] hover:bg-[#d4af37] transition-all">
+                        className="bg-[#d4af37] text-black px-4 py-2 rounded-full font-black text-[9px] uppercase tracking-widest hover:bg-white transition-all shrink-0">
                         Apply
                       </button>
                     ) : (
-                      <button onClick={(e) => { e.stopPropagation(); if (job.id) setJobDetailView(job); }}
-                        className="bg-white/10 text-white/40 px-6 py-2.5 rounded-full font-black text-[10px] uppercase tracking-[0.2em] hover:bg-white/20 transition-all">
-                        View
-                      </button>
+                      <span className="text-white/10 text-[9px] font-black uppercase tracking-widest">No Link</span>
                     )}
                   </div>
                 </div>
@@ -661,15 +643,17 @@ export default function ApplyFirst() {
 
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-3 mt-12">
-            <button onClick={() => { setPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            <button onClick={() => { setPage(p => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
               disabled={page === 1}
-              className="px-6 py-3 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white hover:border-white/30 disabled:opacity-20 disabled:cursor-not-allowed transition-all">
+              className="px-6 py-3 rounded-full border border-white/10 text-white/30 font-black text-[10px] uppercase tracking-widest hover:border-[#d4af37]/20 hover:text-white transition-all disabled:opacity-20">
               ← Prev
             </button>
-            <span className="text-[10px] font-black uppercase tracking-widest text-white/20">{page} / {totalPages}</span>
-            <button onClick={() => { setPage((p) => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            <span className="text-white/20 text-[10px] font-black uppercase tracking-widest">
+              {page} / {totalPages}
+            </span>
+            <button onClick={() => { setPage(p => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
               disabled={page === totalPages}
-              className="px-6 py-3 rounded-full border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white hover:border-white/30 disabled:opacity-20 disabled:cursor-not-allowed transition-all">
+              className="px-6 py-3 rounded-full border border-white/10 text-white/30 font-black text-[10px] uppercase tracking-widest hover:border-[#d4af37]/20 hover:text-white transition-all disabled:opacity-20">
               Next →
             </button>
           </div>
@@ -677,21 +661,13 @@ export default function ApplyFirst() {
       </main>
 
       <section className="border-t border-white/5 bg-[#050505]">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 py-16">
-          <div className="flex items-center justify-between mb-10">
-            <p className="text-sm font-bold uppercase tracking-widest text-white/50">Browse Jobs By</p>
-            {activeFilters > 0 && (
-              <button onClick={resetFilters}
-                className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#d4af37] border border-[#d4af37]/30 bg-[#d4af37]/10 px-4 py-2 rounded-full hover:bg-[#d4af37]/20 transition-all">
-                ✕ Clear All Filters ({activeFilters})
-              </button>
-            )}
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
+          <p className="text-xs font-bold uppercase tracking-widest text-white/20 mb-8">Browse Jobs By</p>
+          <div className="grid md:grid-cols-3 gap-8">
             <div>
               <p className="text-xs font-bold uppercase tracking-widest text-[#d4af37]/70 mb-5">Category</p>
               <div className="flex flex-wrap gap-2">
-                {['Software', 'AI', 'Marketing', 'Finance', 'Design', 'Sales', 'Data', 'Product', 'Healthcare', 'HR', 'Legal', 'Operations', 'Education', 'Customer Success'].map((cat) => (
+                {['Technology', 'AI', 'Marketing', 'Finance', 'Design', 'Sales', 'Data', 'Product', 'Healthcare', 'HR', 'Legal', 'Operations', 'Education', 'Customer Success'].map((cat) => (
                   <button key={cat}
                     onClick={() => { setIndustry(cat); setPage(1); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
                     className={`text-xs font-semibold px-4 py-2 rounded-full border transition-all ${industry === cat ? 'bg-[#d4af37] text-black border-[#d4af37] font-bold' : 'text-white/60 hover:text-white border-white/10 hover:border-[#d4af37]/30 hover:bg-[#d4af37]/5'}`}>
