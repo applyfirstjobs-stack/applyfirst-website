@@ -409,11 +409,11 @@ export default function ApplyFirst() {
   useEffect(() => {
     async function load() {
       setLoading(true);
-      let q = supabase
+     let q = supabase
         .from('jobs')
-        .select('*')
+        .select('id,job_title,company_name,location,job_type,apply_score,date_posted,created_at,industry,apply_url,salary,source,description,funding_amount,funding_round')
         .not('id', 'is', null)
-        .order('created_at', { ascending: false });
+        .order('id', { ascending: false });
 
       if (search) q = q.or(`job_title.ilike.%${search}%,company_name.ilike.%${search}%`);
       if (industry !== 'All Industries') q = q.eq('industry', industry);
