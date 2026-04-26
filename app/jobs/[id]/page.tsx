@@ -2,6 +2,8 @@ import { createClient } from '@supabase/supabase-js';
 import { notFound } from 'next/navigation';
 import ApplySection from './ApplySection';
 
+export const dynamic = 'force-dynamic';
+
 const supabase = createClient(
   'https://mwgvdlefsjvdcwttxzzj.supabase.co',
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13Z3ZkbGVmc2p2ZGN3dHR4enpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzODIzODgsImV4cCI6MjA5MDk1ODM4OH0.vjw_tSybeazSi8DnvL07x1Bx2dCdcDAw-aFPpYQyk6o'
@@ -76,7 +78,7 @@ export async function generateMetadata({ params }: Props) {
   if (!job) {
     return {
       title: 'ApplyFirst — Fresh Jobs',
-      description: 'Browse 3M+ fresh jobs on ApplyFirst.',
+      description: 'Browse fresh jobs on ApplyFirst.',
     };
   }
 
@@ -117,8 +119,6 @@ function Footer() {
           <span className="text-white/30 text-xs font-black uppercase tracking-widest">ApplyFirst — Job Intelligence</span>
         </a>
         <div className="flex flex-wrap justify-center gap-4 text-[10px] font-black uppercase tracking-widest text-white/20">
-          <span>3M+ Jobs from public career pages</span>
-          <span>·</span>
           <a href="/privacy" className="hover:text-white transition-colors">Privacy</a>
           <span>·</span>
           <a href="/terms" className="hover:text-white transition-colors">Terms</a>
@@ -164,7 +164,6 @@ export default async function JobPage({ params }: Props) {
     .eq('id', params.id)
     .single();
 
-  // Not found → proper 404, never redirect
   if (!job) notFound();
 
   const cutoff = new Date(Date.now() - 96 * 60 * 60 * 1000).toISOString();
@@ -203,13 +202,13 @@ export default async function JobPage({ params }: Props) {
             </p>
             <a href="/"
               className="inline-block bg-[#d4af37] text-black px-8 py-4 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-white transition-all">
-              Browse 3M+ Fresh Jobs →
+              Browse Fresh Jobs →
             </a>
           </div>
           {relatedJobs.length > 0 && (
             <div>
               <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 mb-6">
-                🔥 Fresh {job.industry} Jobs — Posted in Last 4 Days
+                🔥 Fresh {job.industry} Jobs
               </h2>
               <div className="space-y-3">
                 {relatedJobs.map((r) => <RelatedJobCard key={r.id} r={r} />)}
