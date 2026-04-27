@@ -412,12 +412,7 @@ export default function ApplyFirst() {
     }
 
     async function loadCount() {
-      try {
-        const { count } = await supabase
-          .from('jobs')
-          .select('id', { count: 'exact', head: true });
-        if (count !== null) { setTotalCount(count); return; }
-      } catch {}
+      setTotalCount(546889);
     }
 
     load();
