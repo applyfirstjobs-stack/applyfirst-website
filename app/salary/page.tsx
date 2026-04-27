@@ -5,7 +5,7 @@ const SUPABASE_URL = 'https://mwgvdlefsjvdcwttxzzj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13Z3ZkbGVmc2p2ZGN3dHR4enpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzODIzODgsImV4cCI6MjA5MDk1ODM4OH0.vjw_tSybeazSi8DnvL07x1Bx2dCdcDAw-aFPpYQyk6o';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-export const revalidate = 86400;
+export const dynamic = 'force-dynamic';
 
 export const metadata = {
   title: 'Salary Data & Compensation Guide — ApplyFirst',
@@ -22,7 +22,6 @@ export default async function SalaryPage() {
 
   return (
     <div className="min-h-screen bg-[#030303] text-white">
-      {/* NAV */}
       <nav className="sticky top-0 z-50 border-b border-white/5 bg-[#030303]/95 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 hover:opacity-70 transition-opacity">
@@ -37,7 +36,6 @@ export default async function SalaryPage() {
         </div>
       </nav>
 
-      {/* HERO */}
       <section className="border-b border-white/5 bg-[#050505]">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-14">
           <div className="flex items-center gap-2 mb-6">
@@ -61,7 +59,6 @@ export default async function SalaryPage() {
         </div>
       </section>
 
-      {/* SALARY LIST */}
       <main className="max-w-7xl mx-auto px-4 md:px-8 py-10">
         <div className="space-y-2">
           {(salaries || []).map((item) => (
@@ -94,7 +91,6 @@ export default async function SalaryPage() {
         </div>
       </main>
 
-      {/* FOOTER */}
       <footer className="border-t border-white/5 mt-20">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
