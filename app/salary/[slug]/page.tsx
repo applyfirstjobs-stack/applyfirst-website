@@ -6,7 +6,7 @@ const SUPABASE_URL = 'https://mwgvdlefsjvdcwttxzzj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13Z3ZkbGVmc2p2ZGN3dHR4enpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzODIzODgsImV4cCI6MjA5MDk1ODM4OH0.vjw_tSybeazSi8DnvL07x1Bx2dCdcDAw-aFPpYQyk6o';
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-export const revalidate = 86400;
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const { data } = await supabase
@@ -45,14 +45,13 @@ export default async function SalaryDetailPage({ params }: { params: { slug: str
     .order('avg_salary', { ascending: false })
     .limit(15);
 
-  // fetch apply_url so we can link directly to company career page
   const { data: relatedJobs } = await supabase
     .from('jobs')
     .select('id, job_title, company_name, location, apply_score, date_posted, apply_url')
     .ilike('job_title', `%${titleData.job_title.split(' ')[0]}%`)
     .not('apply_url', 'is', null)
     .neq('apply_url', '')
-    .order('created_at', { ascending: false })
+    .order('created_at', { ascending: false, nullsFirst: false })
     .limit(10);
 
   const schema = {
@@ -67,7 +66,6 @@ export default async function SalaryDetailPage({ params }: { params: { slug: str
     <div className="min-h-screen bg-[#030303] text-white">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }} />
 
-      {/* NAV */}
       <nav className="sticky top-0 z-50 border-b border-white/5 bg-[#030303]/95 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 hover:opacity-70 transition-opacity">
@@ -82,7 +80,6 @@ export default async function SalaryDetailPage({ params }: { params: { slug: str
         </div>
       </nav>
 
-      {/* HERO */}
       <section className="border-b border-white/5 bg-[#050505]">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-14">
           <div className="flex items-center gap-2 mb-6">
@@ -95,31 +92,21 @@ export default async function SalaryDetailPage({ params }: { params: { slug: str
           <p className="text-white/40 text-lg max-w-2xl leading-relaxed mb-8">
             Based on {titleData.sample_size} verified salary filings from the US Department of Labor.
           </p>
-
-          {/* SALARY STATS */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-[#d4af37]/10 border border-[#d4af37]/20 rounded-2xl p-6">
-              <div className="text-[#d4af37] text-3xl font-black mb-1">
-                ${titleData.avg_salary?.toLocaleString()}
-              </div>
+              <div className="text-[#d4af37] text-3xl font-black mb-1">${titleData.avg_salary?.toLocaleString()}</div>
               <div className="text-white/40 text-[10px] font-black uppercase tracking-widest">Average Salary</div>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-              <div className="text-white text-3xl font-black mb-1">
-                ${titleData.median_salary?.toLocaleString()}
-              </div>
+              <div className="text-white text-3xl font-black mb-1">${titleData.median_salary?.toLocaleString()}</div>
               <div className="text-white/40 text-[10px] font-black uppercase tracking-widest">Median Salary</div>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-              <div className="text-emerald-400 text-3xl font-black mb-1">
-                ${titleData.max_salary?.toLocaleString()}
-              </div>
+              <div className="text-emerald-400 text-3xl font-black mb-1">${titleData.max_salary?.toLocaleString()}</div>
               <div className="text-white/40 text-[10px] font-black uppercase tracking-widest">Max Salary</div>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-2xl p-6">
-              <div className="text-white/60 text-3xl font-black mb-1">
-                ${titleData.min_salary?.toLocaleString()}
-              </div>
+              <div className="text-white/60 text-3xl font-black mb-1">${titleData.min_salary?.toLocaleString()}</div>
               <div className="text-white/40 text-[10px] font-black uppercase tracking-widest">Min Salary</div>
             </div>
           </div>
@@ -127,8 +114,6 @@ export default async function SalaryDetailPage({ params }: { params: { slug: str
       </section>
 
       <main className="max-w-7xl mx-auto px-4 md:px-8 py-10 grid md:grid-cols-2 gap-10">
-
-        {/* BY STATE */}
         {stateData && stateData.length > 0 && (
           <div>
             <h2 className="text-white font-black uppercase tracking-widest text-sm mb-4">
@@ -150,7 +135,6 @@ export default async function SalaryDetailPage({ params }: { params: { slug: str
           </div>
         )}
 
-        {/* BY EMPLOYER */}
         {employerData && employerData.length > 0 && (
           <div>
             <h2 className="text-white font-black uppercase tracking-widest text-sm mb-4">
@@ -173,7 +157,6 @@ export default async function SalaryDetailPage({ params }: { params: { slug: str
         )}
       </main>
 
-      {/* RELATED JOBS — links go directly to company apply URL, no 404 */}
       {relatedJobs && relatedJobs.length > 0 && (
         <section className="border-t border-white/5 bg-[#050505]">
           <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
@@ -182,11 +165,7 @@ export default async function SalaryDetailPage({ params }: { params: { slug: str
             </h2>
             <div className="space-y-2">
               {relatedJobs.map((job) => (
-                <a
-                  key={job.id}
-                  href={job.apply_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <a key={job.id} href={job.apply_url} target="_blank" rel="noopener noreferrer"
                   className="group block bg-[#0c0c0c] hover:bg-[#111] border border-white/5 hover:border-[#d4af37]/15 rounded-2xl px-6 py-4 transition-all duration-200">
                   <div className="flex items-center gap-4">
                     <div className="flex-1 min-w-0">
@@ -207,7 +186,6 @@ export default async function SalaryDetailPage({ params }: { params: { slug: str
         </section>
       )}
 
-      {/* FOOTER */}
       <footer className="border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
