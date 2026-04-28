@@ -7,7 +7,7 @@ const supabase = createClient(
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13Z3ZkbGVmc2p2ZGN3dHR4enpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzODIzODgsImV4cCI6MjA5MDk1ODM4OH0.vjw_tSybeazSi8DnvL07x1Bx2dCdcDAw-aFPpYQyk6o'
 );
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600;
 
 export async function generateMetadata({ params }: { params: { slug: string } }) {
   const { data } = await supabase
@@ -48,7 +48,6 @@ function renderMarkdown(content: string) {
         </h3>
       );
     } else if (line.startsWith('- ')) {
-      const text = line.replace('- ', '').replace(/\*\*(.*?)\*\*/g, '$1');
       elements.push(
         <li key={key++} className="text-white/60 leading-relaxed mb-2 ml-4 list-disc">
           {line.replace('- ', '').split('**').map((part, i) =>
