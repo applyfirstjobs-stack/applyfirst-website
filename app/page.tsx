@@ -472,7 +472,11 @@ export default function ApplyFirst() {
               <p className="text-[8px] text-[#d4af37]/50 font-bold uppercase tracking-[0.25em]">Job Intelligence</p>
             </div>
           </div>
-          <div className="hidden md:flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
+          <div className="hidden md:flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest">
+            <a href="/salary" className="text-white/30 hover:text-white transition-colors font-black tracking-widest">Salaries</a>
+            <span className="text-white/10">·</span>
+            <a href="/blog" className="text-white/30 hover:text-white transition-colors font-black tracking-widest">Blog</a>
+            <span className="text-white/10">·</span>
             <span className="text-[#d4af37] bg-[#d4af37]/10 border border-[#d4af37]/20 px-3 py-1.5 rounded-full">
               {totalCount.toLocaleString()} Roles
             </span>
