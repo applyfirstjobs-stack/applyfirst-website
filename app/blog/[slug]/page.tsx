@@ -1,3 +1,4 @@
+import React from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -21,6 +22,28 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     description: data.excerpt,
     alternates: { canonical: `https://www.applyfirstjobs.com/blog/${params.slug}` },
   };
+}
+
+function renderInline(text: string): React.ReactNode[] {
+  // Handle **bold** and [link](url) inline
+  const parts: React.ReactNode[] = [];
+  const regex = /\*\*(.*?)\*\*|\[(.*?)\]\((.*?)\)/g;
+  let last = 0;
+  let match;
+  let i = 0;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > last) {
+      parts.push(text.slice(last, match.index));
+    }
+    if (match[1] !== undefined) {
+      parts.push(<strong key={i++} className="text-white font-bold">{match[1]}</strong>);
+    } else if (match[2] !== undefined) {
+      parts.push(<a key={i++} href={match[3]} className="text-[#d4af37] hover:underline" target="_blank" rel="noopener noreferrer">{match[2]}</a>);
+    }
+    last = match.index + match[0].length;
+  }
+  if (last < text.length) parts.push(text.slice(last));
+  return parts;
 }
 
 function renderMarkdown(content: string) {
@@ -50,17 +73,13 @@ function renderMarkdown(content: string) {
     } else if (line.startsWith('- ')) {
       elements.push(
         <li key={key++} className="text-white/60 leading-relaxed mb-2 ml-4 list-disc">
-          {line.replace('- ', '').split('**').map((part, i) =>
-            i % 2 === 1 ? <strong key={i} className="text-white font-bold">{part}</strong> : part
-          )}
+          {renderInline(line.replace('- ', ''))}
         </li>
       );
     } else if (line.match(/^\d+\. /)) {
       elements.push(
         <li key={key++} className="text-white/60 leading-relaxed mb-2 ml-4 list-decimal">
-          {line.replace(/^\d+\. /, '').split('**').map((part, i) =>
-            i % 2 === 1 ? <strong key={i} className="text-white font-bold">{part}</strong> : part
-          )}
+          {renderInline(line.replace(/^\d+\. /, ''))}
         </li>
       );
     } else if (line.trim() === '') {
@@ -74,9 +93,7 @@ function renderMarkdown(content: string) {
     } else {
       elements.push(
         <p key={key++} className="text-white/60 leading-relaxed mb-4">
-          {line.split('**').map((part, i) =>
-            i % 2 === 1 ? <strong key={i} className="text-white font-bold">{part}</strong> : part
-          )}
+          {renderInline(line)}
         </p>
       );
     }
