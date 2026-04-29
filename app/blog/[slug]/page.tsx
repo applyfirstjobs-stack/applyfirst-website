@@ -25,9 +25,9 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 function renderInline(text: string): React.ReactNode[] {
-  // Handle **bold** and [link](url) inline
   const parts: React.ReactNode[] = [];
-  const regex = /\*\*(.*?)\*\*|\[(.*?)\]\((.*?)\)/g;
+  // Handle **[text](url)** (bold link), **bold**, [text](url)
+  const regex = /\*\*\[(.*?)\]\((.*?)\)\*\*|\*\*(.*?)\*\*|\[(.*?)\]\((.*?)\)/g;
   let last = 0;
   let match;
   let i = 0;
@@ -36,9 +36,14 @@ function renderInline(text: string): React.ReactNode[] {
       parts.push(text.slice(last, match.index));
     }
     if (match[1] !== undefined) {
-      parts.push(<strong key={i++} className="text-white font-bold">{match[1]}</strong>);
-    } else if (match[2] !== undefined) {
-      parts.push(<a key={i++} href={match[3]} className="text-[#d4af37] hover:underline" target="_blank" rel="noopener noreferrer">{match[2]}</a>);
+      // **[text](url)** - bold link
+      parts.push(<a key={i++} href={match[2]} className="text-[#d4af37] font-bold hover:underline" target="_blank" rel="noopener noreferrer">{match[1]}</a>);
+    } else if (match[3] !== undefined) {
+      // **bold**
+      parts.push(<strong key={i++} className="text-white font-bold">{match[3]}</strong>);
+    } else if (match[4] !== undefined) {
+      // [text](url)
+      parts.push(<a key={i++} href={match[5]} className="text-[#d4af37] hover:underline" target="_blank" rel="noopener noreferrer">{match[4]}</a>);
     }
     last = match.index + match[0].length;
   }
