@@ -48,11 +48,11 @@ export default async function SalaryDetailPage({ params }: { params: { slug: str
   const { data: relatedJobs } = await supabase
     .from('jobs')
     .select('id, job_title, company_name, location, apply_score, date_posted, apply_url')
-    .ilike('job_title', `%${titleData.job_title.split(' ')[0]}%`)
+    .ilike('job_title', `%${titleData.job_title}%`)
     .not('apply_url', 'is', null)
     .neq('apply_url', '')
     .order('created_at', { ascending: false, nullsFirst: false })
-    .limit(10);
+    .limit(20);
 
   const schema = {
     '@context': 'https://schema.org',
@@ -60,6 +60,12 @@ export default async function SalaryDetailPage({ params }: { params: { slug: str
     name: `${titleData.job_title} Salary`,
     description: `Average ${titleData.job_title} salary is $${titleData.avg_salary?.toLocaleString()} per year`,
     url: `https://www.applyfirstjobs.com/salary/${params.slug}`,
+  };
+
+  const cleanCompanyName = (name: string) => {
+    if (!name) return 'Unknown';
+    if (name.toLowerCase() === name) return name.replace(/-/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase());
+    return name;
   };
 
   return (
@@ -74,9 +80,13 @@ export default async function SalaryDetailPage({ params }: { params: { slug: str
             </div>
             <span className="font-black text-lg text-white tracking-tight uppercase">ApplyFirst</span>
           </Link>
-          <Link href="/salary" className="text-[10px] font-black uppercase tracking-widest text-white/30 hover:text-white transition-colors">
-            ← Salary Guide
-          </Link>
+          <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest">
+            <Link href="/" className="text-white/30 hover:text-white transition-colors">Jobs</Link>
+            <span className="text-white/10">·</span>
+            <Link href="/salary" className="text-white/30 hover:text-white transition-colors">Salaries</Link>
+            <span className="text-white/10">·</span>
+            <Link href="/blog" className="text-white/30 hover:text-white transition-colors">Blog</Link>
+          </div>
         </div>
       </nav>
 
@@ -90,7 +100,7 @@ export default async function SalaryDetailPage({ params }: { params: { slug: str
             {titleData.job_title} Salary
           </h1>
           <p className="text-white/40 text-lg max-w-2xl leading-relaxed mb-8">
-            Based on {titleData.sample_size} verified salary filings from the US Department of Labor.
+            Based on {titleData.sample_size?.toLocaleString()} verified salary filings from the US Department of Labor.
           </p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-[#d4af37]/10 border border-[#d4af37]/20 rounded-2xl p-6">
@@ -125,7 +135,7 @@ export default async function SalaryDetailPage({ params }: { params: { slug: str
                   <div>
                     <div className="text-white font-bold text-sm">{row.state}</div>
                     <div className="text-white/30 text-[10px] font-black uppercase tracking-widest mt-0.5">
-                      {row.sample_size} filings · ${row.min_salary?.toLocaleString()} – ${row.max_salary?.toLocaleString()}
+                      {row.sample_size?.toLocaleString()} filings · ${row.min_salary?.toLocaleString()} – ${row.max_salary?.toLocaleString()}
                     </div>
                   </div>
                   <div className="text-[#d4af37] font-black text-lg">${row.avg_salary?.toLocaleString()}</div>
@@ -146,7 +156,7 @@ export default async function SalaryDetailPage({ params }: { params: { slug: str
                   <div>
                     <div className="text-white font-bold text-sm">{row.employer_name}</div>
                     <div className="text-white/30 text-[10px] font-black uppercase tracking-widest mt-0.5">
-                      {row.sample_size} filings · ${row.min_salary?.toLocaleString()} – ${row.max_salary?.toLocaleString()}
+                      {row.sample_size?.toLocaleString()} filings · ${row.min_salary?.toLocaleString()} – ${row.max_salary?.toLocaleString()}
                     </div>
                   </div>
                   <div className="text-[#d4af37] font-black text-lg">${row.avg_salary?.toLocaleString()}</div>
@@ -160,9 +170,15 @@ export default async function SalaryDetailPage({ params }: { params: { slug: str
       {relatedJobs && relatedJobs.length > 0 && (
         <section className="border-t border-white/5 bg-[#050505]">
           <div className="max-w-7xl mx-auto px-4 md:px-8 py-12">
-            <h2 className="text-white font-black uppercase tracking-widest text-sm mb-6">
-              Open {titleData.job_title} Jobs
-            </h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-white font-black uppercase tracking-widest text-sm">
+                Open {titleData.job_title} Jobs
+              </h2>
+              <span className="text-emerald-400 text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                Updated Daily
+              </span>
+            </div>
             <div className="space-y-2">
               {relatedJobs.map((job) => (
                 <a key={job.id} href={job.apply_url} target="_blank" rel="noopener noreferrer"
@@ -173,14 +189,19 @@ export default async function SalaryDetailPage({ params }: { params: { slug: str
                         {job.job_title}
                       </div>
                       <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/30 mt-0.5">
-                        <span>{job.company_name}</span>
+                        <span>{cleanCompanyName(job.company_name)}</span>
                         {job.location && <><span>·</span><span>{job.location}</span></>}
                       </div>
                     </div>
-                    <span className="text-white/20 group-hover:text-[#d4af37] transition-colors text-xs font-black uppercase tracking-widest shrink-0">Apply →</span>
+                    <span className="bg-[#d4af37] text-black px-4 py-2 rounded-full font-black text-[9px] uppercase tracking-widest group-hover:bg-white transition-all shrink-0">Apply →</span>
                   </div>
                 </a>
               ))}
+            </div>
+            <div className="mt-6 text-center">
+              <Link href="/" className="inline-block border border-white/10 text-white/40 px-8 py-3 rounded-full font-black text-[10px] uppercase tracking-widest hover:border-[#d4af37]/20 hover:text-white transition-all">
+                Browse All Jobs →
+              </Link>
             </div>
           </div>
         </section>
