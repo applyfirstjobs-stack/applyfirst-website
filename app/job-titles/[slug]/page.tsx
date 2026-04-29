@@ -55,7 +55,7 @@ export default async function JobsByTitlePage({ params }: { params: { slug: stri
     .order('avg_salary', { ascending: false })
     .limit(5);
 
-  if (!jobs || jobs.length === 0) return notFound();
+  if (!jobs) return notFound();
 
   const cleanCompanyName = (name: string) => {
     if (!name) return 'Unknown';
