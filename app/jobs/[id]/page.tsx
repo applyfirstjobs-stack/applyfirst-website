@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import ApplySection from './ApplySection';
 
 export const dynamic = 'force-dynamic';
@@ -139,7 +139,8 @@ export default async function JobPage({ params }: Props) {
     .eq('id', params.id)
     .single();
 
-  if (!job) notFound();
+  // Redirect to homepage instead of 404 — better for SEO and UX
+  if (!job) redirect('/');
 
   const { data: relatedRaw } = await supabase
     .from('jobs')
