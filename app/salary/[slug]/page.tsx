@@ -45,13 +45,20 @@ export default async function SalaryDetailPage({ params }: { params: { slug: str
     .order('avg_salary', { ascending: false })
     .limit(15);
 
+  // Normalize job title for matching — remove plural s, take first 2 words
+  const jobSearchTerm = titleData.job_title
+    .split(' ')
+    .slice(0, 2)
+    .join(' ')
+    .replace(/s$/i, '');
+
   const { data: relatedJobs } = await supabase
     .from('jobs')
     .select('id, job_title, company_name, location, apply_score, date_posted, apply_url')
-    .ilike('job_title', `%${titleData.job_title}%`)
+    .ilike('job_title', `%${jobSearchTerm}%`)
     .not('apply_url', 'is', null)
     .neq('apply_url', '')
-    .order('created_at', { ascending: false, nullsFirst: false })
+    .order('created_at', { ascending: false })
     .limit(20);
 
   const schema = {
